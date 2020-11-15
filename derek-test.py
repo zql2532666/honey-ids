@@ -1,1 +1,0 @@
-print('FYP sucks ass')
