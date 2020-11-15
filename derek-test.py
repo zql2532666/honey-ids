@@ -1,0 +1,1 @@
+print('FYP sucks ass')
