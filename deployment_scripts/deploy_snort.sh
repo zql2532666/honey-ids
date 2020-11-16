@@ -6,14 +6,14 @@ INTERFACE=$(basename -a /sys/class/net/e*)
 set -e
 set -x
 
-if [ $# -ne 2 ]
+if [ $# -ne 1 ]
     then
-        if [ $# -eq 3 ]
+        if [ $# -eq 2 ]
           then
-            INTERFACE=$3
+            INTERFACE=$2
           else
             echo "Wrong number of arguments supplied."
-            echo "Usage: $0 <server_url> <deploy_key>."
+            echo "Usage: $0 <server_url>."
             exit 1
         fi
 
@@ -25,16 +25,22 @@ compareint=$(echo "$INTERFACE" | wc -w)
 if [ "$INTERFACE" = "e*" ] || [ "$compareint" -ne 1 ]
     then
         echo "No Interface selectable, please provide manually."
-        echo "Usage: $0 <server_url> <deploy_key> <INTERFACE>"
+        echo "Usage: $0 <server_url> <INTERFACE>"
         exit 1
 fi
 
 
 server_url=$1
-deploy_key=$2
 
 apt-get update
 DEBIAN_FRONTEND=noninteractive apt-get -y install build-essential libpcap-dev libjansson-dev libpcre3-dev libdnet-dev libdumbnet-dev libdaq-dev flex bison python-pip git make automake libtool zlib1g-dev
+
+# without the following 2 commands, i get this error:  -- rongtao
+# Command "python setup.py egg_info" failed with error code 1 in /tmp/pip-build-Vdd4DT/setuptools/
+# solution found: https://github.com/googleapis/google-cloud-python/issues/3884
+pip install --upgrade pip
+pip install --upgrade setuptools
+
 
 pip install --upgrade distribute
 pip install virtualenv
@@ -63,11 +69,11 @@ export CPPFLAGS=-I/include
 cd snort
 ./configure --prefix=/opt/snort && make && make install 
 
-# Register the sensor with the MHN server.
-wget $server_url/static/registration.txt -O registration.sh
-chmod 755 registration.sh
+# Register the sensor with the MHN server.  !!!!!!!!!!!!!!!!!!!!!!!!!!!! TO BE DONE USING HONEYAGENT
+# wget $server_url/static/registration.txt -O registration.sh
+# chmod 755 registration.sh
 # Note: this will export the HPF_* variables
-. ./registration.sh $server_url $deploy_key "snort"
+# . ./registration.sh $server_url $deploy_key "snort"
 
 mkdir -p /opt/snort/etc /opt/snort/rules /opt/snort/lib/snort_dynamicrules /opt/snort/lib/snort_dynamicpreprocessor /var/log/snort/
 cd etc
@@ -84,20 +90,21 @@ sed -i 's#/usr/local/#/opt/snort/#' snort.conf
 sed -i -r 's,include \$RULE_PATH/(.*),# include $RULE_PATH/\1,' snort.conf
 
 # enable our local rules
-sed -i 's,# include $RULE_PATH/local.rules,include $RULE_PATH/local.rules,' snort.conf
+# sed -i 's,# include $RULE_PATH/local.rules,include $RULE_PATH/local.rules,' snort.conf
 
-# enable hpfeeds
-sed -i "s/# hpfeeds/# hpfeeds\noutput log_hpfeeds: host $HPF_HOST, ident $HPF_IDENT, secret $HPF_SECRET, channel snort.alerts, port $HPF_PORT/" snort.conf 
+# enable hpfeeds !!!!!!!!!!!!!!!!!! TO BE DONE USING HONEYAGENT
+# sed -i "s/# hpfeeds/# hpfeeds\noutput log_hpfeeds: host $HPF_HOST, ident $HPF_IDENT, secret $HPF_SECRET, channel snort.alerts, port $HPF_PORT/" snort.conf 
+
 
 #Set HOME_NET
-
 IP=$(ip -f inet -o addr show $INTERFACE|head -n 1|cut -d\  -f 7 | cut -d/ -f 1)
 sed -i "/ipvar HOME_NET/c\ipvar HOME_NET $IP" /opt/snort/etc/snort.conf
 
+
 # Installing snort rules.
 # mhn.rules will be used as local.rules.
-rm -f /etc/snort/rules/local.rules
-ln -s /opt/mhn/rules/mhn.rules /opt/snort/rules/local.rules
+# rm -f /etc/snort/rules/local.rules
+# ln -s /opt/mhn/rules/mhn.rules /opt/snort/rules/local.rules
 
 # Supervisor will manage snort-hpfeeds
 apt-get install -y supervisor
@@ -115,20 +122,20 @@ redirect_stderr=true
 stopsignal=QUIT
 EOF
 
-cat > /etc/cron.daily/update_snort_rules.sh <<EOF
+# cat > /etc/cron.daily/update_snort_rules.sh <<EOF
 #!/bin/bash
-mkdir -p /opt/mhn/rules
-rm -f /opt/mhn/rules/mhn.rules.tmp
-echo "[`date`] Updating snort signatures ..."
-wget $server_url/static/mhn.rules -O /opt/mhn/rules/mhn.rules.tmp && \
-	mv /opt/mhn/rules/mhn.rules.tmp /opt/mhn/rules/mhn.rules && \
-	(supervisorctl update ; supervisorctl restart snort ) && \
-	echo "[`date`] Successfully updated snort signatures" && \
-	exit 0
-echo "[`date`] Failed to update snort signatures"
-exit 1
-EOF
-chmod 755 /etc/cron.daily/update_snort_rules.sh
-/etc/cron.daily/update_snort_rules.sh
+# mkdir -p /opt/mhn/rules
+# rm -f /opt/mhn/rules/mhn.rules.tmp
+# echo "[`date`] Updating snort signatures ..."
+# wget $server_url/static/mhn.rules -O /opt/mhn/rules/mhn.rules.tmp && \
+# 	mv /opt/mhn/rules/mhn.rules.tmp /opt/mhn/rules/mhn.rules && \
+#	(supervisorctl update ; supervisorctl restart snort ) && \
+#	echo "[`date`] Successfully updated snort signatures" && \
+#	exit 0
+# echo "[`date`] Failed to update snort signatures"
+# exit 1
+# EOF
+# chmod 755 /etc/cron.daily/update_snort_rules.sh
+# /etc/cron.daily/update_snort_rules.sh
 
 supervisorctl update

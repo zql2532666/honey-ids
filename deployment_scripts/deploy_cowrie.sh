@@ -3,10 +3,10 @@
 set -e
 set -x
 
-if [ $# -ne 2 ]
+if [ $# -ne 1 ]
     then
         echo "Wrong number of arguments supplied."
-        echo "Usage: $0 <server_url> <deploy_key>."
+        echo "Usage: $0 <server_url>"
         exit 1
 fi
 
@@ -14,10 +14,10 @@ apt-get update
 apt-get install -y python
 
 server_url=$1
-deploy_key=$2
+# deploy_key=$2
 
 apt-get update
-apt-get -y install python-dev git supervisor authbind openssl python-virtualenv build-essential python-gmpy2 libgmp-dev libmpfr-dev libmpc-dev libssl-dev python-pip libffi-dev
+apt-get -y install python-dev git openssh-server supervisor authbind openssl python-virtualenv build-essential python-gmpy2 libgmp-dev libmpfr-dev libmpc-dev libssl-dev python-pip libffi-dev
 
 pip install -U supervisor
 /etc/init.d/supervisor start || true
@@ -51,30 +51,41 @@ tftpy
 bcrypt
 EOF
 
+
 virtualenv cowrie-env #env name has changed to cowrie-env on latest version of cowrie
 source cowrie-env/bin/activate
-# without the following, i get this error:
+
+# without the following 2 commands, i get this error:  ---by rongtao
+# ERROR: Package 'setuptools' requires a different Python: 2.7.12 not in '>=3.5'
+# Solution reference: https://blog.csdn.net/weixin_43350700/article/details/104597730
+pip uninstall -y setuptools
+pip install setuptools==44.0.0
+
+# without the following, i get this error:   --- by mhn developer
 # Could not find a version that satisfies the requirement csirtgsdk (from -r requirements.txt (line 10)) (from versions: 0.0.0a5, 0.0.0a6, 0.0.0a5.linux-x86_64, 0.0.0a6.linux-x86_64, 0.0.0a3)
 pip install csirtgsdk==0.0.0a6
 pip install -r requirements.txt 
 
-# Register sensor with MHN server.
-wget $server_url/static/registration.txt -O registration.sh
-chmod 755 registration.sh
+# Register sensor with MHN server. !!!!!!!!!!!!!!!!!! TO BE DONE USING HONEYAGENT
+# wget $server_url/static/registration.txt -O registration.sh
+# chmod 755 registration.sh
 # Note: this will export the HPF_* variables
-. ./registration.sh $server_url $deploy_key "cowrie"
+# . ./registration.sh $server_url $deploy_key "cowrie"
 
 cd etc
 cp cowrie.cfg.dist cowrie.cfg
 sed -i 's/hostname = svr04/hostname = server/g' cowrie.cfg
 sed -i 's/listen_endpoints = tcp:2222:interface=0.0.0.0/listen_endpoints = tcp:22:interface=0.0.0.0/g' cowrie.cfg
 sed -i 's/version = SSH-2.0-OpenSSH_6.0p1 Debian-4+deb7u2/version = SSH-2.0-OpenSSH_6.7p1 Ubuntu-5ubuntu1.3/g' cowrie.cfg
-sed -i 's/#\[output_hpfeeds\]/[output_hpfeeds]/g' cowrie.cfg
-sed -i '/\[output_hpfeeds\]/!b;n;cenabled = true' cowrie.cfg
-sed -i "s/#server = hpfeeds.mysite.org/server = $HPF_HOST/g" cowrie.cfg
-sed -i "s/#port = 10000/port = $HPF_PORT/g" cowrie.cfg
-sed -i "s/#identifier = abc123/identifier = $HPF_IDENT/g" cowrie.cfg
-sed -i "s/#secret = secret/secret = $HPF_SECRET/g" cowrie.cfg
+
+# HPFEEDS CONFIG !!!!!!!!!!!!!!! TO BE DONE USING HONEYAGENT
+# sed -i 's/#\[output_hpfeeds\]/[output_hpfeeds]/g' cowrie.cfg
+# sed -i '/\[output_hpfeeds\]/!b;n;cenabled = true' cowrie.cfg
+# sed -i "s/#server = hpfeeds.mysite.org/server = $HPF_HOST/g" cowrie.cfg
+# sed -i "s/#port = 10000/port = $HPF_PORT/g" cowrie.cfg
+# sed -i "s/#identifier = abc123/identifier = $HPF_IDENT/g" cowrie.cfg
+# sed -i "s/#secret = secret/secret = $HPF_SECRET/g" cowrie.cfg
+
 sed -i 's/#debug=false/debug=false/' cowrie.cfg
 cd ..
 
