@@ -1,0 +1,10 @@
+heartbeats-server.py
+	+	test out on ubuntu 20
+	+	integrate with the REST API on flask
+	+	read in the HBPORT + CHECKWAIT from a config file
+	
+heatbeats-client.py
+	+	test out on ubuntu 20
+	+	integrate with the honey agent
+	+	read in HBPORT + BEATWAIT from config file 
+

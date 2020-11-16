@@ -37,9 +37,15 @@ Adjust the constant parameters as needed, or call as:
 """
 1)  When the server is started, it will call the http endpoint on the flask server to 
     retrive the honeynodes details
-
-2)  The heartbeat server should query the http point to retrive the details at 
-    a certain time interval to keep everything synced
+        def populate_honeynode_list():
+            # Query the database for honey node info
+            # GET REQUEST to endpoint on flask
+            # populate the honeynode dictionary
+       
+2)  Update the honeynodes of the active status after a period of time or if there is a slient honey node 
+        def update_slient_honeynodes_database():
+            # update the database of slient honeynodes (no more heartbeats signals)
+            # POST/PUT REQUEST to enpoint on flask
 """
 
 HBPORT = 43278
