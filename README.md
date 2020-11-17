@@ -5,5 +5,5 @@ test
 # Note
 
 TODO:
-- fix snort deployment script
+- <s> fix snort deployment script </s>
 - Add honeyagent installation + configuration in the deployment scripts for cowrie and snort
