@@ -2,8 +2,6 @@
 Author: Thein Than Zaw 
 Date Started: 16/11/2020
 
-Ref: https://www.oreilly.com/library/view/python-cookbook/0596001673/ch10s13.html
-
 The client program, running on any number of computers, periodically sends 
 an UDP packet to the server program that runs on one central computer. 
 
@@ -72,10 +70,10 @@ Adjust the constant parameters as needed, or call as:
      
      When another function wants to use a variable, it must wait until that variable is unlocked.
 """
-HBPORT = 43278
+HBPORT = 43279
 DEAD_INTERVAL = 30
 
-from socket import socket, gethostbyname, AF_INET, SOCK_DGRAM
+from socket import socket, gethostbyname, AF_INET, SOCK_DGRAM, SOCK_STREAM
 from threading import Lock, Thread, Event
 from time import time, ctime, sleep
 import sys
@@ -146,7 +144,7 @@ class BeatRec(Thread):
         return "Heartbeat Server on port: %d\n" % self.port
 
     def run(self):
-        while self.goOnEvent.isSet(  ):
+        while self.goOnEvent.isSet():
             if __debug__:
                 print ("Waiting to receive...")
             data, addr = self.recSocket.recvfrom(1024)
@@ -159,13 +157,13 @@ class BeatRec(Thread):
                 print (f"Received packet from {addr}") 
             self.updateDictFunc(addr[0])
 
-def main(  ):
+def main():
     "Listen to the heartbeats and detect inactive clients"
     global HBPORT, DEAD_INTERVAL
-    if len(sys.argv)>1:
-        HBPORT=sys.argv[1]
-    if len(sys.argv)>2:
-        DEAD_INTERVAL=sys.argv[2]
+    # if len(sys.argv)>1:
+    #     HBPORT=sys.argv[1]
+    # if len(sys.argv)>2:
+    #     DEAD_INTERVAL=sys.argv[2]
 
     beatRecGoOnEvent = Event()
     beatRecGoOnEvent.set()
@@ -176,6 +174,18 @@ def main(  ):
     beatRecThread.start()
     print (f"HeartBeats server listening on port {HBPORT}") 
     print ("\n*** Press Ctrl-C to stop ***\n")
+
+
+    
+    with socket(AF_INET, SOCK_STREAM) as s:
+        s.connect(('127.0.0.1', 30002))
+        data = {
+            "command" : "kill"
+        }
+        data_json = json.dumps(data)
+        data_encoded = data_json.encode('utf-8')
+        s.sendall(data_encoded)
+
     while 1:
         try:
             if __debug__:
@@ -194,3 +204,10 @@ def main(  ):
 
 if __name__ == '__main__':
     main()
+
+
+"""
+needs two processes 
+1) heartbeats process
+2) command process
+"""
