@@ -69,17 +69,13 @@ export CPPFLAGS=-I/include
 cd snort
 ./configure --prefix=/opt/snort && make && make install 
 
-# Register the sensor with the MHN server.  !!!!!!!!!!!!!!!!!!!!!!!!!!!! TO BE DONE USING HONEYAGENT
-# wget $server_url/static/registration.txt -O registration.sh
-# chmod 755 registration.sh
-# Note: this will export the HPF_* variables
-# . ./registration.sh $server_url $deploy_key "snort"
 
 mkdir -p /opt/snort/etc /opt/snort/rules /opt/snort/lib/snort_dynamicrules /opt/snort/lib/snort_dynamicpreprocessor /var/log/snort/
 cd etc
 cp snort.conf classification.config reference.config threshold.conf unicode.map /opt/snort/etc/
 touch  /opt/snort/rules/white_list.rules
 touch  /opt/snort/rules/black_list.rules
+
 
 cd /opt/snort/etc/
 # out prefix is /opt/snort not /usr/local...
@@ -92,7 +88,7 @@ sed -i -r 's,include \$RULE_PATH/(.*),# include $RULE_PATH/\1,' snort.conf
 # enable our local rules
 sed -i 's,# include $RULE_PATH/local.rules,include $RULE_PATH/local.rules,' snort.conf
 
-# enable hpfeeds !!!!!!!!!!!!!!!!!! TO BE DONE USING HONEYAGENT
+# enable hpfeeds !!!!!!!!!!!!!!!!!! TO BE DONE 
 # sed -i "s/# hpfeeds/# hpfeeds\noutput log_hpfeeds: host $HPF_HOST, ident $HPF_IDENT, secret $HPF_SECRET, channel snort.alerts, port $HPF_PORT/" snort.conf 
 
 
@@ -122,7 +118,10 @@ redirect_stderr=true
 stopsignal=QUIT
 EOF
 
-# Creating a script to update snort rules daily
+
+# Creating a script to download snort rules from the main server
+# A cron job is set up ro run this script daily so that if the rules are updated on the server's end, it will also be updated here
+# wget url to be replaced by main server's url
 cat > /etc/cron.daily/update_snort_rules.sh <<EOF
 #!/bin/bash
 mkdir -p /opt/honeyids/rules

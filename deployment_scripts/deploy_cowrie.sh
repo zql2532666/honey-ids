@@ -14,7 +14,6 @@ apt-get update
 apt-get install -y python
 
 server_url=$1
-# deploy_key=$2
 
 apt-get update
 apt-get -y install python-dev git openssh-server supervisor authbind openssl python-virtualenv build-essential python-gmpy2 libgmp-dev libmpfr-dev libmpc-dev libssl-dev python-pip libffi-dev
@@ -28,7 +27,7 @@ service ssh restart
 useradd -d /home/cowrie -s /bin/bash -m cowrie -g users
 
 cd /opt
-git clone https://github.com/micheloosterhof/cowrie.git cowrie
+git clone https://github.com/zql2532666/cowrie.git cowrie
 cd cowrie
 
 # Most recent known working version
@@ -66,25 +65,32 @@ pip install setuptools==44.0.0
 pip install csirtgsdk==0.0.0a6
 pip install -r requirements.txt 
 
-# Register sensor with MHN server. !!!!!!!!!!!!!!!!!! TO BE DONE USING HONEYAGENT
-# wget $server_url/static/registration.txt -O registration.sh
-# chmod 755 registration.sh
-# Note: this will export the HPF_* variables
-# . ./registration.sh $server_url $deploy_key "cowrie"
 
+# Register honey node with main server. !!!!!!!!!!!!!!!!!! TO BE DONE USING HONEYAGENT
+
+# TODO:
+# 1. download honeyagent scripts from main server
+# 2. generate honeyagent config file
+# 3. configure honeyagent as service
+# 4. start honeyagent
+
+
+# cowrie configuration
 cd etc
 cp cowrie.cfg.dist cowrie.cfg
 sed -i 's/hostname = svr04/hostname = server/g' cowrie.cfg
 sed -i 's/listen_endpoints = tcp:2222:interface=0.0.0.0/listen_endpoints = tcp:22:interface=0.0.0.0/g' cowrie.cfg
 sed -i 's/version = SSH-2.0-OpenSSH_6.0p1 Debian-4+deb7u2/version = SSH-2.0-OpenSSH_6.7p1 Ubuntu-5ubuntu1.3/g' cowrie.cfg
 
-# HPFEEDS CONFIG !!!!!!!!!!!!!!! TO BE DONE USING HONEYAGENT
+
+# HPFEEDS CONFIG !!!!!!!!!!!!!!! TO BE DONE
 # sed -i 's/#\[output_hpfeeds\]/[output_hpfeeds]/g' cowrie.cfg
 # sed -i '/\[output_hpfeeds\]/!b;n;cenabled = true' cowrie.cfg
 # sed -i "s/#server = hpfeeds.mysite.org/server = $HPF_HOST/g" cowrie.cfg
 # sed -i "s/#port = 10000/port = $HPF_PORT/g" cowrie.cfg
 # sed -i "s/#identifier = abc123/identifier = $HPF_IDENT/g" cowrie.cfg
 # sed -i "s/#secret = secret/secret = $HPF_SECRET/g" cowrie.cfg
+
 
 sed -i 's/#debug=false/debug=false/' cowrie.cfg
 cd ..
@@ -94,9 +100,11 @@ touch /etc/authbind/byport/22
 chown cowrie /etc/authbind/byport/22
 chmod 770 /etc/authbind/byport/22
 
+
 # start.sh is deprecated on new Cowrie version and substituted by "bin/cowrie [start/stop/status]"
 sed -i 's/AUTHBIND_ENABLED=no/AUTHBIND_ENABLED=yes/' bin/cowrie
 sed -i 's/DAEMONIZE=""/DAEMONIZE="-n"/' bin/cowrie
+
 
 # Config for supervisor
 cat > /etc/supervisor/conf.d/cowrie.conf <<EOF
