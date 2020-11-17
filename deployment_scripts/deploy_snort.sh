@@ -57,14 +57,14 @@ ldconfig
 
 cd /tmp
 rm -rf hpfeeds
-git clone https://github.com/pwnlandia/hpfeeds.git
+git clone https://github.com/zql2532666/hpfeeds.git
 cd hpfeeds/appsupport/libhpfeeds
 autoreconf --install
 ./configure && make && make install 
 
 cd /tmp
 rm -rf snort
-git clone -b hpfeeds-support https://github.com/threatstream/snort.git
+git clone -b hpfeeds-support https://github.com/zql2532666/snort.git
 export CPPFLAGS=-I/include
 cd snort
 ./configure --prefix=/opt/snort && make && make install 
@@ -90,7 +90,7 @@ sed -i 's#/usr/local/#/opt/snort/#' snort.conf
 sed -i -r 's,include \$RULE_PATH/(.*),# include $RULE_PATH/\1,' snort.conf
 
 # enable our local rules
-# sed -i 's,# include $RULE_PATH/local.rules,include $RULE_PATH/local.rules,' snort.conf
+sed -i 's,# include $RULE_PATH/local.rules,include $RULE_PATH/local.rules,' snort.conf
 
 # enable hpfeeds !!!!!!!!!!!!!!!!!! TO BE DONE USING HONEYAGENT
 # sed -i "s/# hpfeeds/# hpfeeds\noutput log_hpfeeds: host $HPF_HOST, ident $HPF_IDENT, secret $HPF_SECRET, channel snort.alerts, port $HPF_PORT/" snort.conf 
@@ -102,9 +102,9 @@ sed -i "/ipvar HOME_NET/c\ipvar HOME_NET $IP" /opt/snort/etc/snort.conf
 
 
 # Installing snort rules.
-# mhn.rules will be used as local.rules.
-# rm -f /etc/snort/rules/local.rules
-# ln -s /opt/mhn/rules/mhn.rules /opt/snort/rules/local.rules
+# honeyids.rules will be used as local.rules.
+rm -f /etc/snort/rules/local.rules
+ln -s /opt/honeyids/rules/honeyids.rules /opt/snort/rules/local.rules
 
 # Supervisor will manage snort-hpfeeds
 apt-get install -y supervisor
@@ -122,20 +122,22 @@ redirect_stderr=true
 stopsignal=QUIT
 EOF
 
-# cat > /etc/cron.daily/update_snort_rules.sh <<EOF
+cat > /etc/cron.daily/update_snort_rules.sh <<EOF
 #!/bin/bash
-# mkdir -p /opt/mhn/rules
-# rm -f /opt/mhn/rules/mhn.rules.tmp
-# echo "[`date`] Updating snort signatures ..."
-# wget $server_url/static/mhn.rules -O /opt/mhn/rules/mhn.rules.tmp && \
-# 	mv /opt/mhn/rules/mhn.rules.tmp /opt/mhn/rules/mhn.rules && \
-#	(supervisorctl update ; supervisorctl restart snort ) && \
-#	echo "[`date`] Successfully updated snort signatures" && \
-#	exit 0
-# echo "[`date`] Failed to update snort signatures"
-# exit 1
-# EOF
-# chmod 755 /etc/cron.daily/update_snort_rules.sh
-# /etc/cron.daily/update_snort_rules.sh
+mkdir -p /opt/honeyids/rules
+rm -f /opt/honeyids/rules/honeyids.rules.tmp
+echo "[`date`] Updating snort signatures ..."
+wget wget --no-check-certificate --content-disposition https://github.com/zql2532666/snort/blob/master/honeyids.rules -O /opt/honeyids/rules/honeyids.rules.tmp && \
+	mv /opt/honeyids/rules/honeyids.rules.tmp /opt/honeyids/rules/honeyids.rules && \
+	(supervisorctl update ; supervisorctl restart snort ) && \
+	echo "[`date`] Successfully updated snort signatures" && \
+	exit 0
+echo "[`date`] Failed to update snort signatures"
+exit 1
+EOF
+
+chmod 755 /etc/cron.daily/update_snort_rules.sh
+/etc/cron.daily/update_snort_rules.sh
+
 
 supervisorctl update
