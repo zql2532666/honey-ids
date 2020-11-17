@@ -37,58 +37,98 @@ Adjust the constant parameters as needed, or call as:
 """
 1)  When the server is started, it will call the http endpoint on the flask server to 
     retrive the honeynodes details
-        def populate_honeynode_list():
+        def populate_heartbeat_dict():
             # Query the database for honey node info
             # GET REQUEST to endpoint on flask
             # populate the honeynode dictionary
+
+            route("/get_honey_node"):
+                return all_honey_nodes
+            
+            request.get("flaskip/get_honey_node")
+            honeynode_dict = reponse.data
        
 2)  Update the honeynodes of the active status after a period of time or if there is a slient honey node 
         def update_slient_honeynodes_database():
-            # update the database of slient honeynodes (no more heartbeats signals)
-            # POST/PUT REQUEST to enpoint on flask
+            # update the status of slient honeynodes to database (no more heartbeats signals)
+            # POST or PUT REQUEST to endpoint on flask --> this will then update the database 
+
+            route ("/update_honeynode?token=??")
+            # this is to update the honeynode status to the database
+            request.post("flaskip/update_honeynode?token=xxx")
+
+
+3) Update the database every 10 min or so 
+        def update_database():
+
 """
 
+
+"""
+    You'll often want your threads to be able to use or modify variables common between 
+    threads but to do that you'll have to use something known as a lock.
+    
+     Whenever a function wants to modify a variable, it locks that variable. 
+     
+     When another function wants to use a variable, it must wait until that variable is unlocked.
+"""
 HBPORT = 43278
-CHECKWAIT = 30
+DEAD_INTERVAL = 30
 
 from socket import socket, gethostbyname, AF_INET, SOCK_DGRAM
 from threading import Lock, Thread, Event
 from time import time, ctime, sleep
 import sys
-
-class BeatDict:
+import json
+class HeartBeatDict:
     "Manage heartbeat dictionary"
 
     def __init__(self):
-        self.beatDict = {}
+        self.heartbeat_dict = {}
         if __debug__:
-            self.beatDict['127.0.0.1'] = time()
-        self.dictLock = Lock()
+            """
+                heartbeat_dict should be reconfigure to be in this format
+                heartbeat_dict = {}
+                heatbeat_dict["token"] = {
+                    "honeynode_name": "",
+                    "ip_addr": "100.10.10.1",
+                    "subnet_mask": "255.255.255.0",
+                    "honeypot_type": "",
+                    "nids_type": "",
+                    "deployed_date": "",
+                }
+
+                token will be used to identify unique honey nodes
+
+                
+            """
+            self.heartbeat_dict['127.0.0.1'] = time()
+        self.heartbeat_dict_lock = Lock()
 
     def __repr__(self):
         list = ''
-        self.dictLock.acquire()
-        for key in self.beatDict.keys():
+        self.heartbeat_dict_lock.acquire()
+        for key in self.heartbeat_dict.keys():
             list = "%sIP address: %s - Last time: %s\n" % (
-                list, key, ctime(self.beatDict[key]))
-        self.dictLock.release()
+                list, key, ctime(self.heartbeat_dict[key]))
+        self.heartbeat_dict_lock.release()
         return list
 
     def update(self, entry):
         "Create or update a dictionary entry"
-        self.dictLock.acquire()
-        self.beatDict[entry] = time()
-        self.dictLock.release()
+        self.heartbeat_dict_lock.acquire()
+        self.heartbeat_dict[entry] = time()
+        self.heartbeat_dict_lock.release()
 
-    def extractSilent(self, howPast):
+    def extract_slient_nodes(self, howPast):
         "Returns a list of entries older than howPast"
         silent = []
         when = time() - howPast
-        self.dictLock.acquire()
-        for key in self.beatDict.keys():
-            if self.beatDict[key] < when:
+        self.heartbeat_dict_lock.acquire()
+        for key in self.heartbeat_dict.keys():
+            if self.heartbeat_dict[key] < when:
                 silent.append(key)
-        self.dictLock.release()
+        self.heartbeat_dict_lock.release()
         return silent
 
 class BeatRec(Thread):
@@ -110,38 +150,42 @@ class BeatRec(Thread):
             if __debug__:
                 print ("Waiting to receive...")
             data, addr = self.recSocket.recvfrom(1024)
-            print(data.decode('utf-8'))
+            data = data.decode('utf-8')
+            # json.loads() deserialises the json object and return it to python dictionary
+            data = json.loads(data)
+            print(data['token'])
+            # print(type(data.decode('utf-8')))
             if __debug__:
                 print (f"Received packet from {addr}") 
             self.updateDictFunc(addr[0])
 
 def main(  ):
     "Listen to the heartbeats and detect inactive clients"
-    global HBPORT, CHECKWAIT
+    global HBPORT, DEAD_INTERVAL
     if len(sys.argv)>1:
         HBPORT=sys.argv[1]
     if len(sys.argv)>2:
-        CHECKWAIT=sys.argv[2]
+        DEAD_INTERVAL=sys.argv[2]
 
     beatRecGoOnEvent = Event()
     beatRecGoOnEvent.set()
-    beatDictObject = BeatDict()
-    beatRecThread = BeatRec(beatRecGoOnEvent, beatDictObject.update, HBPORT)
+    heartbeat_dict_object = HeartBeatDict()
+    beatRecThread = BeatRec(beatRecGoOnEvent, heartbeat_dict_object.update, HBPORT)
     if __debug__:
         print (beatRecThread)
-    beatRecThread.start(  )
-    print (f"PyHeartBeat server listening on port {HBPORT}") 
+    beatRecThread.start()
+    print (f"HeartBeats server listening on port {HBPORT}") 
     print ("\n*** Press Ctrl-C to stop ***\n")
     while 1:
         try:
             if __debug__:
-                print ("Beat Dictionary")
-                print (f"{beatDictObject}")
-            silent = beatDictObject.extractSilent(CHECKWAIT)
+                print ("HeartBeat Dictionary")
+                print (f"{heartbeat_dict_object}")
+            silent = heartbeat_dict_object.extract_slient_nodes(DEAD_INTERVAL)
             if silent:
-                print ("Silent clients")
+                print ("Silent Nodes")
                 print (f"{silent}")
-            sleep(CHECKWAIT)
+            sleep(DEAD_INTERVAL)
         except KeyboardInterrupt:
             print ("Exiting.")
             beatRecGoOnEvent.clear()
