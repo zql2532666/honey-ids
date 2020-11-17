@@ -122,12 +122,13 @@ redirect_stderr=true
 stopsignal=QUIT
 EOF
 
+# Creating a script to update snort rules daily
 cat > /etc/cron.daily/update_snort_rules.sh <<EOF
 #!/bin/bash
 mkdir -p /opt/honeyids/rules
 rm -f /opt/honeyids/rules/honeyids.rules.tmp
 echo "[`date`] Updating snort signatures ..."
-wget --no-check-certificate --content-disposition wget https://github.com/zql2532666/snort/raw/master/honeyids.rules -O /opt/honeyids/rules/honeyids.rules.tmp && \
+wget https://github.com/zql2532666/snort/raw/master/honeyids.rules -O /opt/honeyids/rules/honeyids.rules.tmp && \
   mv /opt/honeyids/rules/honeyids.rules.tmp /opt/honeyids/rules/honeyids.rules && \
   (supervisorctl update ; supervisorctl restart snort ) && \
 	echo "[`date`] Successfully updated snort signatures" && \
