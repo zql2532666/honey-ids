@@ -1,4 +1,4 @@
-from socket import socket, AF_INET, SOCK_DGRAM,SOCK_STREAM
+# from socket import socket, AF_INET, SOCK_DGRAM,SOCK_STREAM
 import socket
 from time import time, ctime, sleep
 import sys
@@ -29,7 +29,7 @@ HONEYNODE_NIDS_TYPE = config['HONEYNODE']['NIDS_TYPE']
 HONEYNODE_DEPLOYED_DATE = config['HONEYNODE']['DEPLOYED_DATE']
 HONEYNODE_COMMAND_PORT = int(config['HONEYNODE']['COMMAND_PORT'])
 
-
+thread_list = list()
 
 handshake_data = {
     "token": TOKEN,
@@ -48,42 +48,54 @@ handshake_data_json = json.dumps(handshake_data)
 
 def listen_for_commands():
     try:
+    # while True:
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             print("listening for commands")
-            s.bind(('127.0.0.1',HONEYNODE_COMMAND_PORT))
+            s.bind(('localhost',HONEYNODE_COMMAND_PORT))
             s.listen()
-            conn, addr = s.accept()
-            with conn:
-                print(f"Command received from {addr}")
-                while True:
-                    data = conn.recv(1024)
-                    if not data:
-                        break
-                data = data.decode('utf-8')
-                data = json.loads(data)
-                print(data)
-                """
-                    the command should look like 
-                    {"command" : "handshake"}
-                """
+            while True:
+                try:
+                    conn, addr = s.accept()
+                    with conn:
+                        print(f"Command received from {addr}")
+                        # while True:
+                        data = conn.recv(1024)
+                        # if not data:
+                        #     break
+                        data = data.decode('utf-8')
+                        data = json.loads(data)
+                        command = data['command']
+                        print(f"command received --> {command}")
+                        """
+                            the command should look like 
+                            {"command" : "handshake"}
+                        """
+                        process_command_from_c2(command)
+                except Exception as e:
+                    print(e)
+
     except socket.error as e:
         print(f"Error creating commmand Socket\n {e}")
 
 
 def process_command_from_c2(command):
     if (command == "handshake"):
-        # send data to flask api end point 
+        # send data to flask api end point for adding new honeynodes
         # ... call the http end point here
-        # on the flask, check if there is a duplicate token/ip address, 
-        #   if there is , update the status of the honeynode as, active. 
-        #   If not, add this as a new honeypot
+            # on the flask, check if there is a duplicate token/ip address, 
+            #   if there is , update the status of the honeynode as, active. 
+            #   If not, add this as a new honeypot
         print("handshake")
     elif (command == "kill"):
         # kill the honeyagent program + hp feeds
         print("kill")
+    else:
+        print("Command not recognized")
 
 def perform_handshake():
     print("handshake")
 
 def kill():
     print("kill")
+
+listen_for_commands()

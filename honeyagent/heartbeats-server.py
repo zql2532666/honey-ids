@@ -73,7 +73,8 @@ Adjust the constant parameters as needed, or call as:
 HBPORT = 43279
 DEAD_INTERVAL = 30
 
-from socket import socket, gethostbyname, AF_INET, SOCK_DGRAM, SOCK_STREAM
+# from socket import socket, gethostbyname, AF_INET, SOCK_DGRAM, SOCK_STREAM
+import socket
 from threading import Lock, Thread, Event
 from time import time, ctime, sleep
 import sys
@@ -137,7 +138,7 @@ class BeatRec(Thread):
         self.goOnEvent = goOnEvent
         self.updateDictFunc = updateDictFunc
         self.port = port
-        self.recSocket = socket(AF_INET, SOCK_DGRAM)
+        self.recSocket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.recSocket.bind(('', port))
 
     def __repr__(self):
@@ -174,17 +175,6 @@ def main():
     beatRecThread.start()
     print (f"HeartBeats server listening on port {HBPORT}") 
     print ("\n*** Press Ctrl-C to stop ***\n")
-
-
-    
-    with socket(AF_INET, SOCK_STREAM) as s:
-        s.connect(('127.0.0.1', 30002))
-        data = {
-            "command" : "kill"
-        }
-        data_json = json.dumps(data)
-        data_encoded = data_json.encode('utf-8')
-        s.sendall(data_encoded)
 
     while 1:
         try:
