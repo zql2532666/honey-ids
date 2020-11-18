@@ -8,3 +8,11 @@ heatbeats-client.py
 	+	integrate with the honey agent
 	+	read in HBPORT + BEATWAIT from config file 
 
+    with socket(AF_INET, SOCK_STREAM) as s:
+        s.connect(('127.0.0.1', 30002))
+        data = {
+            "command" : "kill"
+        }
+        data_json = json.dumps(data)
+        data_encoded = data_json.encode('utf-8')
+        s.sendall(data_encoded)

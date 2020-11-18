@@ -58,7 +58,7 @@ print (f"HeartBeat client sending to IP {SERVER_IP} , {SERVER_HB_PORT}")
 print ("\n*** Press Ctrl-C to terminate ***\n")
 def send_heartbeats():
     data_encoded = heartbeat_data_json.encode('utf-8')
-    print(f"heartbeats size: {len(data_encoded)}")
+    # print(f"heartbeats size: {len(data_encoded)}")
     try:
         with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as hbsocket:
             while 1:
@@ -74,15 +74,13 @@ send_heartbeats()
 
 # process_list=list()
 # if __name__ == '__main__':   
-#     p1 = multiprocessing.Process(target=send_heartbeats)
-#     # p2 = multiprocessing.Process(target=listen_for_commands)
-#     p1.start()
-#     # p2.start()
-#     p1.join()
-    # p2.join()
+#     for _ in range(10):
+#         p = multiprocessing.Process(target=send_heartbeats)
+#         p.start()
+#         process_list.append(p)
 
-    # for p in process_list:
-    #     p.join()
+#     for p in process_list:
+#         p.join()
 
 
 
