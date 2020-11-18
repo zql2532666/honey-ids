@@ -84,12 +84,18 @@ sed -i 's/version = SSH-2.0-OpenSSH_6.0p1 Debian-4+deb7u2/version = SSH-2.0-Open
 
 
 # HPFEEDS CONFIG !!!!!!!!!!!!!!! TO BE DONE
-# sed -i 's/#\[output_hpfeeds\]/[output_hpfeeds]/g' cowrie.cfg
-# sed -i '/\[output_hpfeeds\]/!b;n;cenabled = true' cowrie.cfg
-# sed -i "s/#server = hpfeeds.mysite.org/server = $HPF_HOST/g" cowrie.cfg
-# sed -i "s/#port = 10000/port = $HPF_PORT/g" cowrie.cfg
-# sed -i "s/#identifier = abc123/identifier = $HPF_IDENT/g" cowrie.cfg
-# sed -i "s/#secret = secret/secret = $HPF_SECRET/g" cowrie.cfg
+
+# hardcoded variables for testing. to be read from honeyagent config file in future
+HPF_HOST=$1     # same as server url for now
+HPF_PORT=10000
+HPF_IDENT="cowrie"
+HPF_SECRET="cowrie"
+sed -i 's/#\[output_hpfeeds\]/[output_hpfeeds]/g' cowrie.cfg
+sed -i '/\[output_hpfeeds\]/!b;n;cenabled = true' cowrie.cfg
+sed -i "s/#server = hpfeeds.mysite.org/server = $HPF_HOST/g" cowrie.cfg
+sed -i "s/#port = 10000/port = $HPF_PORT/g" cowrie.cfg
+sed -i "s/#identifier = abc123/identifier = $HPF_IDENT/g" cowrie.cfg
+sed -i "s/#secret = secret/secret = $HPF_SECRET/g" cowrie.cfg
 
 
 sed -i 's/#debug=false/debug=false/' cowrie.cfg
