@@ -50,8 +50,9 @@ def listen_for_commands():
     try:
     # while True:
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-            print("listening for commands")
-            s.bind(('localhost',HONEYNODE_COMMAND_PORT))
+            print(f"listening for commands on {HONEYNODE_IP} at port {HONEYNODE_COMMAND_PORT}")
+            # print(f"honeynode_ip {HONEYNODE_IP}")
+            s.bind((HONEYNODE_IP,HONEYNODE_COMMAND_PORT))
             s.listen()
             while True:
                 try:

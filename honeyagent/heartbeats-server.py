@@ -70,7 +70,24 @@ Adjust the constant parameters as needed, or call as:
      
      When another function wants to use a variable, it must wait until that variable is unlocked.
 """
-HBPORT = 43279
+
+"""
+        heartbeat_dict should be reconfigure to be in this format
+        heartbeat_dict = {}
+        heatbeat_dict["token"] = {
+        "honeynode_name": "",
+        "ip_addr": "100.10.10.1",
+        "subnet_mask": "255.255.255.0",
+        "honeypot_type": "",
+        "nids_type": "",
+        "deployed_date": "",
+        }
+
+        token will be used to identify unique honey nodes
+
+                
+"""
+HBPORT = 40000
 DEAD_INTERVAL = 30
 
 # from socket import socket, gethostbyname, AF_INET, SOCK_DGRAM, SOCK_STREAM
@@ -85,23 +102,8 @@ class HeartBeatDict:
     def __init__(self):
         self.heartbeat_dict = {}
         if __debug__:
-            """
-                heartbeat_dict should be reconfigure to be in this format
-                heartbeat_dict = {}
-                heatbeat_dict["token"] = {
-                    "honeynode_name": "",
-                    "ip_addr": "100.10.10.1",
-                    "subnet_mask": "255.255.255.0",
-                    "honeypot_type": "",
-                    "nids_type": "",
-                    "deployed_date": "",
-                }
-
-                token will be used to identify unique honey nodes
-
-                
-            """
-            self.heartbeat_dict['127.0.0.1'] = time()
+            # self.heartbeat_dict['127.0.0.1'] = time()
+            self.heartbeat_dict[5] = time()
         self.heartbeat_dict_lock = Lock()
 
     def __repr__(self):
@@ -117,38 +119,43 @@ class HeartBeatDict:
         "Create or update a dictionary entry"
         self.heartbeat_dict_lock.acquire()
         self.heartbeat_dict[entry] = time()
+        print(f"updated : {self.heartbeat_dict}")
         self.heartbeat_dict_lock.release()
 
-    def extract_slient_nodes(self, howPast):
-        "Returns a list of entries older than howPast"
+    def extract_slient_nodes(self, time_limit):
+        "Returns a list of entries older than time_limit"
         silent = []
-        when = time() - howPast
+        print(f"time --> {time()}")
+        when = time() - time_limit
+        print(f"time_limit --> {time_limit}")
+        print(f"when --> {when}")
         self.heartbeat_dict_lock.acquire()
         for key in self.heartbeat_dict.keys():
             if self.heartbeat_dict[key] < when:
+                print(f"{key} : {self.heartbeat_dict[key]}")
                 silent.append(key)
         self.heartbeat_dict_lock.release()
         return silent
 
-class BeatRec(Thread):
+class HeartBeatReceiver(Thread):
     "Receive UDP packets, log them in heartbeat dictionary"
 
-    def __init__(self, goOnEvent, updateDictFunc, port):
+    def __init__(self, go_on_event, update_dict_func, port):
         Thread.__init__(self)
-        self.goOnEvent = goOnEvent
-        self.updateDictFunc = updateDictFunc
+        self.go_on_event = go_on_event
+        self.update_dict_func = update_dict_func
         self.port = port
-        self.recSocket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        self.recSocket.bind(('', port))
+        self.receive_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        self.receive_socket.bind(('', port))
 
     def __repr__(self):
         return "Heartbeat Server on port: %d\n" % self.port
 
     def run(self):
-        while self.goOnEvent.isSet():
+        while self.go_on_event.isSet():
             if __debug__:
                 print ("Waiting to receive...")
-            data, addr = self.recSocket.recvfrom(1024)
+            data, addr = self.receive_socket.recvfrom(1024)
             data = data.decode('utf-8')
             # json.loads() deserialises the json object and return it to python dictionary
             data = json.loads(data)
@@ -156,7 +163,45 @@ class BeatRec(Thread):
             # print(type(data.decode('utf-8')))
             if __debug__:
                 print (f"Received packet from {addr}") 
-            self.updateDictFunc(addr[0])
+            # updates the heartbeat dictionary, addr[0] contains the ip address of the sender
+            # self.update_dict_func(addr[0])
+            self.update_dict_func(int(data['token']))
+
+
+"""
+populate_heartbeat_dict() populates the heartbeat_dict with all the active nodes
+    1) at the start of the program
+    2) when a new handshake process with the a honeynode is successful (new honeynode added or old honeynode becoming active again)
+        (flask should open a socket connection with a command, and this command should prompt in
+        running of this method)
+"""
+def populate_heartbeat_dict():
+    print("populating hearbeat dict")
+    # call the http endpoint on Flask to populate
+    # this method should be called 
+
+
+"""
+update_honeynode_status() will update to the flask endpoint when a honeynode has gone slient 
+    Task 1: call the flask endpoint to update the database of the honeynode status --> becomes inactive
+
+    Question: what should i do when a honeynode becomes active again for some reason? How can I update this new status
+        2 scenrios:
+            1)  A new handshake
+                    client clicks on handshake button--> flask 
+                    flask -- sockets --> honeynode 
+                    honeynode -- api --> flask 
+                        flask updates database (client becomes active again)
+                    flask -- sockets --> c2 
+                        c2 runs populate_heartbeat_dict (the old honeynode will now be now be inside the heartbeat_dict)
+            2)  All of a sudden starts getting heartbeats
+
+                thought --> update slient nodes + active nodes to the database? this way we can account for different nodes going silent
+                each time . this is impossbile to do when you only want to access the data base if len(silent) == 0 
+"""
+def update_honeynode_status():
+    print("update_honeynode_status")
+
 
 def main():
     "Listen to the heartbeats and detect inactive clients"
@@ -169,7 +214,7 @@ def main():
     beatRecGoOnEvent = Event()
     beatRecGoOnEvent.set()
     heartbeat_dict_object = HeartBeatDict()
-    beatRecThread = BeatRec(beatRecGoOnEvent, heartbeat_dict_object.update, HBPORT)
+    beatRecThread = HeartBeatReceiver(beatRecGoOnEvent, heartbeat_dict_object.update, HBPORT)
     if __debug__:
         print (beatRecThread)
     beatRecThread.start()
