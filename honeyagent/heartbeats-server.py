@@ -98,7 +98,7 @@ import sys
 import json
 import requests
 class HeartBeatDict:
-    "Manage heartbeat dictionary"
+    "Manage heartbeat dictionaryda f"
 
     def __init__(self):
         self.heartbeat_dict = {}
