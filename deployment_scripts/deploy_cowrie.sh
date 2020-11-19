@@ -71,7 +71,7 @@ pip install -r requirements.txt
 # TODO:
 # 1. download honeyagent scripts from main server
 # 2. generate honeyagent config file
-# 3. configure honeyagent as service
+# 3. configure supervisor for honeyagent
 # 4. start honeyagent
 
 
@@ -90,6 +90,7 @@ HPF_HOST=$1     # same as server url for now
 HPF_PORT=10000
 HPF_IDENT="cowrie"
 HPF_SECRET="cowrie"
+
 sed -i 's/#\[output_hpfeeds\]/[output_hpfeeds]/g' cowrie.cfg
 sed -i '/\[output_hpfeeds\]/!b;n;cenabled = true' cowrie.cfg
 sed -i "s/#server = hpfeeds.mysite.org/server = $HPF_HOST/g" cowrie.cfg

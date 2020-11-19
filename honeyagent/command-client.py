@@ -81,7 +81,7 @@ def listen_for_commands():
 
 def process_command_from_c2(command):
     if (command == "handshake"):
-        # send data to flask api end point for adding new honeynodes
+        # sendd data to flask api end point for adding new honeynodes
         # ... call the http end point here
             # on the flask, check if there is a duplicate token/ip address, 
             #   if there is , update the status of the honeynode as, active. 

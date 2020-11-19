@@ -6,7 +6,7 @@ def send_command():
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         s.connect(('127.0.0.1', 30000))
         data = {
-            "command" : "handshake"
+            "command" : "handshakee"
         }
         data_json = json.dumps(data)
         data_encoded = data_json.encode('utf-8')
