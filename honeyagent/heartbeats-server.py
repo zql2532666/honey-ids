@@ -96,14 +96,15 @@ from threading import Lock, Thread, Event
 from time import time, ctime, sleep
 import sys
 import json
+import requests
 class HeartBeatDict:
     "Manage heartbeat dictionary"
 
     def __init__(self):
         self.heartbeat_dict = {}
-        if __debug__:
-            # self.heartbeat_dict['127.0.0.1'] = time()
-            self.heartbeat_dict[5] = time()
+        # if __debug__:
+        #     # self.heartbeat_dict['127.0.0.1'] = time()
+        #     self.heartbeat_dict[5] = time()
         self.heartbeat_dict_lock = Lock()
 
     def __repr__(self):
@@ -136,6 +137,21 @@ class HeartBeatDict:
                 silent.append(key)
         self.heartbeat_dict_lock.release()
         return silent
+    
+    def populate_heartbeat_dict(self):
+        # print("populating hearbeat dict")
+        # API_ENDPOINT = ""
+        # r = requests.get(API_ENDPOINT)
+        # if r.status_code == 200:
+        #     print("API call successful")
+        #     data = r.json()
+        #     data = json.loads(data)
+        #     self.heartbeat_dict_lock.acquire()
+        #     self.heartbeat_dict = data
+        #     self.heartbeat_dict_lock.release()
+        self.heartbeat_dict_lock.acquire()
+        self.heartbeat_dict['test'] = time()
+        self.heartbeat_dict_lock.release()
 
 class HeartBeatReceiver(Thread):
     "Receive UDP packets, log them in heartbeat dictionary"
@@ -175,9 +191,10 @@ populate_heartbeat_dict() populates the heartbeat_dict with all the active nodes
         (flask should open a socket connection with a command, and this command should prompt in
         running of this method)
 """
-def populate_heartbeat_dict():
-    print("populating hearbeat dict")
+
+    # 
     # call the http endpoint on Flask to populate
+
     # this method should be called 
 
 
@@ -211,13 +228,29 @@ def main():
     # if len(sys.argv)>2:
     #     DEAD_INTERVAL=sys.argv[2]
 
-    beatRecGoOnEvent = Event()
-    beatRecGoOnEvent.set()
+    """
+        Event Objects are used for communication between threads: 
+            one thread signals an event and one or more other threads are waiting for it 
+
+            An event object manages an internal flag that can be 
+                i.  set to true with the set() method and 
+                ii. reset to false with the clear() method.
+
+            The wait() method blocks until the flag is true.
+
+
+    """
+    # Event() --> The internal flag is initially false
+    heat_beat_rec_go_on_event = Event()
+
+    # Set the internal flag to true. All threads waiting for it to become true are awakened. Threads that call wait() once the flag is true will not block at all. 
+    heat_beat_rec_go_on_event.set()
     heartbeat_dict_object = HeartBeatDict()
-    beatRecThread = HeartBeatReceiver(beatRecGoOnEvent, heartbeat_dict_object.update, HBPORT)
+    heartbeat_dict_object.populate_heartbeat_dict()
+    heat_beat_rec_thread = HeartBeatReceiver(heat_beat_rec_go_on_event, heartbeat_dict_object.update, HBPORT)
     if __debug__:
-        print (beatRecThread)
-    beatRecThread.start()
+        print (heat_beat_rec_thread)
+    heat_beat_rec_thread.start()
     print (f"HeartBeats server listening on port {HBPORT}") 
     print ("\n*** Press Ctrl-C to stop ***\n")
 
@@ -230,11 +263,14 @@ def main():
             if silent:
                 print ("Silent Nodes")
                 print (f"{silent}")
+                # Update the database of honeynode status 
             sleep(DEAD_INTERVAL)
         except KeyboardInterrupt:
             print ("Exiting.")
-            beatRecGoOnEvent.clear()
-            beatRecThread.join()
+
+            # Reset the internal flag to false. Subsequently, threads calling wait() will block until set() is called to set the internal flag to true again. 
+            heat_beat_rec_go_on_event.clear()
+            heat_beat_rec_thread.join()
             sys.exit(0)
 
 if __name__ == '__main__':
