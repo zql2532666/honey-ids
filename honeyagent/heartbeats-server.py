@@ -33,7 +33,7 @@ Adjust the constant parameters as needed, or call as:
 """
 
 """
-1)  When the server is started, it will call the http endpoint on the flask server to 
+1)  wWhen the server is started, it will call the http endpoint on the flask server to 
     retrive the honeynodes details
         def populate_heartbeat_dict():
             # Query the database for honey node info

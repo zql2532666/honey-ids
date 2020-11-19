@@ -89,7 +89,14 @@ sed -i -r 's,include \$RULE_PATH/(.*),# include $RULE_PATH/\1,' snort.conf
 sed -i 's,# include $RULE_PATH/local.rules,include $RULE_PATH/local.rules,' snort.conf
 
 # enable hpfeeds !!!!!!!!!!!!!!!!!! TO BE DONE 
-# sed -i "s/# hpfeeds/# hpfeeds\noutput log_hpfeeds: host $HPF_HOST, ident $HPF_IDENT, secret $HPF_SECRET, channel snort.alerts, port $HPF_PORT/" snort.conf 
+
+# hardcoded variables for testing. to be read from honeyagent config file in future
+HPF_HOST=$1     # same as server url for now
+HPF_PORT=10000
+HPF_IDENT="snort"
+HPF_SECRET="snort"
+
+sed -i "s/# hpfeeds/# hpfeeds\noutput log_hpfeeds: host $HPF_HOST, ident $HPF_IDENT, secret $HPF_SECRET, channel snort.alerts, port $HPF_PORT/" snort.conf 
 
 
 #Set HOME_NET
