@@ -98,7 +98,7 @@ Adjust the constant parameters as needed, or call as:
     # api call
 
 HBPORT = 40000
-DEAD_INTERVAL = 5
+DEAD_INTERVAL = 15
 
 # from socket import socket, gethostbyname, AF_INET, SOCK_DGRAM, SOCK_STREAM
 import socket
@@ -126,26 +126,32 @@ class HeartBeatDict:
     #     self.heartbeat_dict_lock.release()
     #     return list
 
-    # this updates the last_heard_time
+    # this updates the last_heard_time for each indiv nodes
     def update_time_last_heard(self, entry):
         "Create or update a dictionary entry"
         self.heartbeat_dict_lock.acquire()
-        self.heartbeat_dict[entry]['time_last_heard'] = time()
-        print(f"updated : {self.heartbeat_dict}")
+        print(f"entry --> {entry}")
+        # print(self.heartbeat_dict.keys())
+        for key in self.heartbeat_dict.keys():
+            if entry == key:
+                print(f"time update success for token == {entry}")
+                print(self.heartbeat_dict[key])
+                self.heartbeat_dict[entry]['time_last_heard'] = time()
         self.heartbeat_dict_lock.release()
 
+    # this updates the heartbeat_status of all the nodes in the heartbeat_dict after the dead interval
     def update_heartbeat_status(self, dead_nodes_list):
         self.heartbeat_dict_lock.acquire()
-        for dead_node in dead_nodes_list:
-            for key in self.heartbeat_dict.keys():
-                # if the node's token can be found in the slient_node_list, the status will be set to False (Dead)
-                if dead_node == key:
-                    print(f"dead node found: {dead_node}")
-                    self.heartbeat_dict[key]['heartbeat_status'] = False
-                else:
-                # All other nodes, not found in the dead_node_list is set to True (Active)
-                    print(f"active node {self.heartbeat_dict[key]}")
-                    self.heartbeat_dict[key]['heartbeat_status'] = True
+        for key in self.heartbeat_dict.keys():
+            # if the node's token can be found in the slient_node_list, the status will be set to False (Dead)
+            if key in dead_nodes_list:
+                print(f"dead node found: {key}")
+                self.heartbeat_dict[key]['heartbeat_status'] = False
+            else:
+            # All other nodes, not found in the dead_node_list is set to True (Active)
+                print(f"active node {self.heartbeat_dict[key]}")
+                self.heartbeat_dict[key]['heartbeat_status'] = True
+            
         self.heartbeat_dict_lock.release()
 
     def extract_dead_nodes(self, time_limit):
@@ -154,14 +160,8 @@ class HeartBeatDict:
         when = time() - time_limit
         self.heartbeat_dict_lock.acquire()
         for key in self.heartbeat_dict.keys():
-            print("\n\n--------------------------")
-            print(f"key/token --> {key}")
-            print(f"status/time dict --> {self.heartbeat_dict[key]}" )
-            print(f"time -->  {self.heartbeat_dict[key]['time_last_heard']}")
-            print(type(self.heartbeat_dict[key]['time_last_heard']))
-            print(when)
             if self.heartbeat_dict[key]['time_last_heard'] < when:
-                print(f"{key} : {self.heartbeat_dict[key]['time_last_heard']}")
+                # print(f"{key} : {self.heartbeat_dict[key]['time_last_heard']}")
                 dead.append(key)
         self.heartbeat_dict_lock.release()
         return dead
@@ -169,11 +169,11 @@ class HeartBeatDict:
     def populate_heartbeat_dict(self):
         self.heartbeat_dict_lock.acquire()
         self. heartbeat_dict = {
-            "token_1": {
+            "a1": {
                     'heartbeat_status' : True, 
                     'time_last_heard' : time()
                 },
-            "token_2": {
+            "b2": {
                     'heartbeat_status' : False, 
                     'time_last_heard' : time()
                 }
@@ -209,15 +209,15 @@ class HeartBeatReceiver(Thread):
                 print (f"Received packet from {addr}") 
             # updates the heartbeat dictionary, addr[0] contains the ip address of the sender
             # self.update_dict_func(addr[0])
-            self.update_dict_func(int(data['token']))
+            self.update_dict_func(data['token'])
 
 def main():
     "Listen to the heartbeats and detect inactive clients"
     global HBPORT, DEAD_INTERVAL
-    # if len(sys.argv)>1:
-    #     HBPORT=sys.argv[1]
-    # if len(sys.argv)>2:
-    #     DEAD_INTERVAL=sys.argv[2]
+    if len(sys.argv)>1:
+        HBPORT=sys.argv[1]
+    if len(sys.argv)>2:
+        DEAD_INTERVAL=sys.argv[2]
     # Event() --> The internal flag is initially false
     heat_beat_rec_go_on_event = Event()
 
@@ -225,7 +225,7 @@ def main():
     heat_beat_rec_go_on_event.set()
     heartbeat_dict_object = HeartBeatDict()
     heartbeat_dict_object.populate_heartbeat_dict()
-    print(f"Initial heart_beat_dict --> {heartbeat_dict_object.heartbeat_dict}")
+    # print(f"Initial heart_beat_dict --> {heartbeat_dict_object.heartbeat_dict}")
     heat_beat_rec_thread = HeartBeatReceiver(heat_beat_rec_go_on_event, heartbeat_dict_object.update_time_last_heard, HBPORT)
     if __debug__:
         print (heat_beat_rec_thread)
@@ -256,14 +256,6 @@ def main():
 
 if __name__ == '__main__':
     main()
-
-
-"""
-needs two processes 
-1) heartbeats process
-2) command process
-"""
-
 
 
 """
