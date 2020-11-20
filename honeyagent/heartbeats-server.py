@@ -144,7 +144,7 @@ class HeartBeatDict:
                     self.heartbeat_dict[key]['heartbeat_status'] = False
                 else:
                 # All other nodes, not found in the dead_node_list is set to True (Active)
-                    print(f"active node {self.hearbeat_dict[key]}")
+                    print(f"active node {self.heartbeat_dict[key]}")
                     self.heartbeat_dict[key]['heartbeat_status'] = True
         self.heartbeat_dict_lock.release()
 
@@ -155,9 +155,9 @@ class HeartBeatDict:
         self.heartbeat_dict_lock.acquire()
         for key in self.heartbeat_dict.keys():
             print("\n\n--------------------------")
-            print(key)
-            print(self.heartbeat_dict[key])
-            print(self.heartbeat_dict[key]['time_last_heard'])
+            print(f"key/token --> {key}")
+            print(f"status/time dict --> {self.heartbeat_dict[key]}" )
+            print(f"time -->  {self.heartbeat_dict[key]['time_last_heard']}")
             print(type(self.heartbeat_dict[key]['time_last_heard']))
             print(when)
             if self.heartbeat_dict[key]['time_last_heard'] < when:
@@ -178,7 +178,7 @@ class HeartBeatDict:
                     'time_last_heard' : time()
                 }
         }
-        self.heartbeat_dict['test'] = time()
+        # self.heartbeat_dict['test'] = time()
         self.heartbeat_dict_lock.release()
 
 class HeartBeatReceiver(Thread):
