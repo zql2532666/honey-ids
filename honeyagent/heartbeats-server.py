@@ -143,14 +143,14 @@ class HeartBeatDict:
                     print(f"dead node found: {dead_node}")
                     self.heartbeat_dict[key]['heartbeat_status'] = False
                 else:
-                # All other nodes, not found in the silent_node_list is set to True (Active)
+                # All other nodes, not found in the dead_node_list is set to True (Active)
                     print(f"active node {self.hearbeat_dict[key]}")
                     self.heartbeat_dict[key]['heartbeat_status'] = True
         self.heartbeat_dict_lock.release()
 
-    def extract_slient_nodes(self, time_limit):
+    def extract_dead_nodes(self, time_limit):
         "Returns a list of entries older than time_limit"
-        silent = []
+        dead = []
         # print(f"time --> {time()}")
         when = time() - time_limit
         # print(f"time_limit --> {time_limit}")
@@ -161,25 +161,28 @@ class HeartBeatDict:
         for key in self.heartbeat_dict.keys():
             # print(f"self.heartbeat_dict[key][time_last_heard] {self.heartbeat_dict[key]['time_last_heard']}")
             # print(type(self.heartbeat_dict[key]['time_last_heard']))
+            print("\n\n--------------------------")
+            print(self.heartbeat_dict[key])
             print(self.heartbeat_dict[key]['time_last_heard'])
+            print(type(self.heartbeat_dict[key]['time_last_heard']))
             print(when)
             if self.heartbeat_dict[key]['time_last_heard'] < when:
                 print(f"{key} : {self.heartbeat_dict[key]['time_last_heard']}")
-                silent.append(key)
+                dead.append(key)
         self.heartbeat_dict_lock.release()
-        return silent
+        return dead
     
     def populate_heartbeat_dict(self):
         self.heartbeat_dict_lock.acquire()
         self. heartbeat_dict = {
-            "ads;lkfjdsalkjfdsa;lk": {
+            "token_1": {
                     'heartbeat_status' : True, 
                     'time_last_heard' : time()
                 },
-            "adfjdfdsafadsfasfdsaf": {
+            "token_2": {
                     'heartbeat_status' : False, 
                     'time_last_heard' : time()
-                },
+                }
         }
         self.heartbeat_dict['test'] = time()
         self.heartbeat_dict_lock.release()
@@ -244,8 +247,8 @@ update_honeynode_status() will update to the flask endpoint when a honeynode has
                         c2 runs populate_heartbeat_dict (the old honeynode will now be now be inside the heartbeat_dict)
             2)  All of a sudden starts getting heartbeats
 
-                thought --> update slient nodes + active nodes to the database? this way we can account for different nodes going silent
-                each time . this is impossbile to do when you only want to access the data base if len(silent) == 0 
+                thought --> update slient nodes + active nodes to the database? this way we can account for different nodes going dead
+                each time . this is impossbile to do when you only want to access the data base if len(dead) == 0 
 """
 
 def main():
@@ -275,13 +278,13 @@ def main():
             if __debug__:
                 print ("HeartBeat Dictionary")
                 print (f"{heartbeat_dict_object}")
-            silent = heartbeat_dict_object.extract_slient_nodes(DEAD_INTERVAL)
-            if silent:
-                print ("Silent Nodes")
-                print (f"{silent}")
+            dead = heartbeat_dict_object.extract_dead_nodes(DEAD_INTERVAL)
+            if dead:
+                print ("dead Nodes")
+                print (f"{dead}")
                 
             # update the database here 
-            heartbeat_dict_object.update_heartbeat_status(silent)
+            heartbeat_dict_object.update_heartbeat_status(dead)
             sleep(DEAD_INTERVAL)
         except KeyboardInterrupt:
             print ("Exiting.")
