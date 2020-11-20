@@ -87,16 +87,6 @@ Adjust the constant parameters as needed, or call as:
 
                 
 """
-# this updates the active status 
-# def update_database(hearbeat_dict, slient):
-#     for i in slient:
-#         for key in hearbeat_dict.keys:
-#             if i == key:
-#                 hearbeat_dict[key] = False
-#             else:
-#                 heartbeat_dict[key] = True
-    # api call
-
 HBPORT = 40000
 DEAD_INTERVAL = 15
 WEB_SERVER_IP = "127.0.0.1"

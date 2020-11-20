@@ -1,4 +1,4 @@
-from time import time, ctime, sleep
+import time 
 # return_db_data = [
 #     {"heartbeat_status": True, 
 #     "token": "1", 
@@ -13,5 +13,7 @@ from time import time, ctime, sleep
 #             'heartbeat_status' : data['heartbeat_status'],
 #             'last_heard' : data['last_heard']
 #     }
-time = time.asctime()
-print(time)
+
+print "time.time(): %f " %  time.time()
+print time.localtime( time.time() )
+print time.asctime( time.localtime(time.time()) )
