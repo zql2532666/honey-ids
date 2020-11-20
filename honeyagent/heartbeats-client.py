@@ -41,14 +41,20 @@ HONEYNODE_DEPLOYED_DATE = config['HONEYNODE']['DEPLOYED_DATE']
 HONEYNODE_COMMAND_PORT = int(config['HONEYNODE']['COMMAND_PORT'])
 
 
+# heartbeat_data = {
+#     "token": TOKEN,
+#     "honeynode_name": HONEYNODE_NAME,
+#     "ip_addr": HONEYNODE_IP,
+#     "subnet_mask": HONEYNODE_SUBNET_MASK,
+#     "honeypot_type": HONEYNODE_HONEYPOT_TYPE,
+#     "nids_type": HONEYNODE_NIDS_TYPE,
+#     "deployed_date": HONEYNODE_DEPLOYED_DATE,
+#     "msg": "HEARTBEATS"
+# }
+
+
 heartbeat_data = {
     "token": TOKEN,
-    "honeynode_name": HONEYNODE_NAME,
-    "ip_addr": HONEYNODE_IP,
-    "subnet_mask": HONEYNODE_SUBNET_MASK,
-    "honeypot_type": HONEYNODE_HONEYPOT_TYPE,
-    "nids_type": HONEYNODE_NIDS_TYPE,
-    "deployed_date": HONEYNODE_DEPLOYED_DATE,
     "msg": "HEARTBEATS"
 }
 

@@ -87,6 +87,7 @@ def process_command_from_c2(command):
             #   if there is , update the status of the honeynode as, active. 
             #   If not, add this as a new honeypot
         print("handshake")
+        sleep(5)
     elif (command == "kill"):
         # kill the honeyagent program + hp feeds
         print("kill")

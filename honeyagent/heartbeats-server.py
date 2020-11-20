@@ -87,8 +87,18 @@ Adjust the constant parameters as needed, or call as:
 
                 
 """
+# this updates the active status 
+# def update_database(hearbeat_dict, slient):
+#     for i in slient:
+#         for key in hearbeat_dict.keys:
+#             if i == key:
+#                 hearbeat_dict[key] = False
+#             else:
+#                 heartbeat_dict[key] = True
+    # api call
+
 HBPORT = 40000
-DEAD_INTERVAL = 30
+DEAD_INTERVAL = 5
 
 # from socket import socket, gethostbyname, AF_INET, SOCK_DGRAM, SOCK_STREAM
 import socket
@@ -107,49 +117,70 @@ class HeartBeatDict:
         #     self.heartbeat_dict[5] = time()
         self.heartbeat_dict_lock = Lock()
 
-    def __repr__(self):
-        list = ''
-        self.heartbeat_dict_lock.acquire()
-        for key in self.heartbeat_dict.keys():
-            list = "%sIP address: %s - Last time: %s\n" % (
-                list, key, ctime(self.heartbeat_dict[key]))
-        self.heartbeat_dict_lock.release()
-        return list
+    # def __repr__(self):
+    #     list = ''
+    #     self.heartbeat_dict_lock.acquire()
+    #     for key in self.heartbeat_dict.keys():
+    #         list = "%sIP address: %s - Last time: %s\n" % (
+    #             list, key, ctime(self.heartbeat_dict[key]))
+    #     self.heartbeat_dict_lock.release()
+    #     return list
 
-    def update(self, entry):
+    # this updates the last_heard_time
+    def update_time_last_heard(self, entry):
         "Create or update a dictionary entry"
         self.heartbeat_dict_lock.acquire()
-        self.heartbeat_dict[entry] = time()
+        self.heartbeat_dict[entry]['time_last_heard'] = time()
         print(f"updated : {self.heartbeat_dict}")
+        self.heartbeat_dict_lock.release()
+
+    def update_heartbeat_status(self, dead_nodes_list):
+        self.heartbeat_dict_lock.acquire()
+        for dead_node in dead_nodes_list:
+            for key in self.heartbeat_dict.keys():
+                # if the node's token can be found in the slient_node_list, the status will be set to False (Dead)
+                if dead_node == key:
+                    print(f"dead node found: {dead_node}")
+                    self.heartbeat_dict[key]['heartbeat_status'] = False
+                else:
+                # All other nodes, not found in the silent_node_list is set to True (Active)
+                    print(f"active node {self.hearbeat_dict[key]}")
+                    self.heartbeat_dict[key]['heartbeat_status'] = True
         self.heartbeat_dict_lock.release()
 
     def extract_slient_nodes(self, time_limit):
         "Returns a list of entries older than time_limit"
         silent = []
-        print(f"time --> {time()}")
+        # print(f"time --> {time()}")
         when = time() - time_limit
-        print(f"time_limit --> {time_limit}")
-        print(f"when --> {when}")
+        # print(f"time_limit --> {time_limit}")
+        # print(f"when --> {when}")
+        # print(type(when))
+        # print("\n")
         self.heartbeat_dict_lock.acquire()
         for key in self.heartbeat_dict.keys():
-            if self.heartbeat_dict[key] < when:
-                print(f"{key} : {self.heartbeat_dict[key]}")
+            # print(f"self.heartbeat_dict[key][time_last_heard] {self.heartbeat_dict[key]['time_last_heard']}")
+            # print(type(self.heartbeat_dict[key]['time_last_heard']))
+            print(self.heartbeat_dict[key]['time_last_heard'])
+            print(when)
+            if self.heartbeat_dict[key]['time_last_heard'] < when:
+                print(f"{key} : {self.heartbeat_dict[key]['time_last_heard']}")
                 silent.append(key)
         self.heartbeat_dict_lock.release()
         return silent
     
     def populate_heartbeat_dict(self):
-        # print("populating hearbeat dict")
-        # API_ENDPOINT = ""
-        # r = requests.get(API_ENDPOINT)
-        # if r.status_code == 200:
-        #     print("API call successful")
-        #     data = r.json()
-        #     data = json.loads(data)
-        #     self.heartbeat_dict_lock.acquire()
-        #     self.heartbeat_dict = data
-        #     self.heartbeat_dict_lock.release()
         self.heartbeat_dict_lock.acquire()
+        self. heartbeat_dict = {
+            "ads;lkfjdsalkjfdsa;lk": {
+                    'heartbeat_status' : True, 
+                    'time_last_heard' : time()
+                },
+            "adfjdfdsafadsfasfdsaf": {
+                    'heartbeat_status' : False, 
+                    'time_last_heard' : time()
+                },
+        }
         self.heartbeat_dict['test'] = time()
         self.heartbeat_dict_lock.release()
 
@@ -216,9 +247,6 @@ update_honeynode_status() will update to the flask endpoint when a honeynode has
                 thought --> update slient nodes + active nodes to the database? this way we can account for different nodes going silent
                 each time . this is impossbile to do when you only want to access the data base if len(silent) == 0 
 """
-def update_honeynode_status():
-    print("update_honeynode_status")
-
 
 def main():
     "Listen to the heartbeats and detect inactive clients"
@@ -227,19 +255,6 @@ def main():
     #     HBPORT=sys.argv[1]
     # if len(sys.argv)>2:
     #     DEAD_INTERVAL=sys.argv[2]
-
-    """
-        Event Objects are used for communication between threads: 
-            one thread signals an event and one or more other threads are waiting for it 
-
-            An event object manages an internal flag that can be 
-                i.  set to true with the set() method and 
-                ii. reset to false with the clear() method.
-
-            The wait() method blocks until the flag is true.
-
-
-    """
     # Event() --> The internal flag is initially false
     heat_beat_rec_go_on_event = Event()
 
@@ -247,7 +262,8 @@ def main():
     heat_beat_rec_go_on_event.set()
     heartbeat_dict_object = HeartBeatDict()
     heartbeat_dict_object.populate_heartbeat_dict()
-    heat_beat_rec_thread = HeartBeatReceiver(heat_beat_rec_go_on_event, heartbeat_dict_object.update, HBPORT)
+    print(f"Initial heart_beat_dict --> {heartbeat_dict_object.heartbeat_dict}")
+    heat_beat_rec_thread = HeartBeatReceiver(heat_beat_rec_go_on_event, heartbeat_dict_object.update_time_last_heard, HBPORT)
     if __debug__:
         print (heat_beat_rec_thread)
     heat_beat_rec_thread.start()
@@ -263,7 +279,9 @@ def main():
             if silent:
                 print ("Silent Nodes")
                 print (f"{silent}")
-                # Update the database of honeynode status 
+                
+            # update the database here 
+            heartbeat_dict_object.update_heartbeat_status(silent)
             sleep(DEAD_INTERVAL)
         except KeyboardInterrupt:
             print ("Exiting.")
