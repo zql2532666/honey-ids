@@ -99,7 +99,7 @@ Adjust the constant parameters as needed, or call as:
 
 HBPORT = 40000
 DEAD_INTERVAL = 15
-
+WEB_SERVER_IP = "127.0.0.1"
 # from socket import socket, gethostbyname, AF_INET, SOCK_DGRAM, SOCK_STREAM
 import socket
 from threading import Lock, Thread, Event
@@ -151,8 +151,12 @@ class HeartBeatDict:
             # All other nodes, not found in the dead_node_list is set to True (Active)
                 print(f"active node {self.heartbeat_dict[key]}")
                 self.heartbeat_dict[key]['heartbeat_status'] = True
-            
+        heartbeat_json = json.dumps(self.heartbeat_dict)
         self.heartbeat_dict_lock.release()
+
+        """ perform api call to flask here """ 
+        API_ENDPOINT = f"{WEB_SERVER_IP}"
+
 
     def extract_dead_nodes(self, time_limit):
         "Returns a list of entries older than time_limit"
@@ -161,14 +165,18 @@ class HeartBeatDict:
         self.heartbeat_dict_lock.acquire()
         for key in self.heartbeat_dict.keys():
             if self.heartbeat_dict[key]['time_last_heard'] < when:
-                # print(f"{key} : {self.heartbeat_dict[key]['time_last_heard']}")
                 dead.append(key)
         self.heartbeat_dict_lock.release()
         return dead
     
+    # Need to find a way to call this again when a new node is added
     def populate_heartbeat_dict(self):
         self.heartbeat_dict_lock.acquire()
-        self. heartbeat_dict = {
+        """ Perform API Call here """
+        API_ENDPOINT = f"{WEB_SERVER_IP}"
+
+        print("populating heartbeat dict")
+        self.heartbeat_dict = {
             "a1": {
                     'heartbeat_status' : True, 
                     'time_last_heard' : time()
@@ -178,17 +186,17 @@ class HeartBeatDict:
                     'time_last_heard' : time()
                 }
         }
-        # self.heartbeat_dict['test'] = time()
         self.heartbeat_dict_lock.release()
 
 class HeartBeatReceiver(Thread):
     "Receive UDP packets, log them in heartbeat dictionary"
 
-    def __init__(self, go_on_event, update_dict_func, port):
+    def __init__(self, go_on_event, update_dict_func, port, populate_dict_func):
         Thread.__init__(self)
         self.go_on_event = go_on_event
         self.update_dict_func = update_dict_func
         self.port = port
+        self.populate_dict_func = populate_dict_func
         self.receive_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.receive_socket.bind(('', port))
 
@@ -201,15 +209,19 @@ class HeartBeatReceiver(Thread):
                 print ("Waiting to receive...")
             data, addr = self.receive_socket.recvfrom(1024)
             data = data.decode('utf-8')
-            # json.loads() deserialises the json object and return it to python dictionary
             data = json.loads(data)
-            print(data['token'])
-            # print(type(data.decode('utf-8')))
             if __debug__:
                 print (f"Received packet from {addr}") 
             # updates the heartbeat dictionary, addr[0] contains the ip address of the sender
             # self.update_dict_func(addr[0])
-            self.update_dict_func(data['token'])
+            try:
+                if data['msg'] == "HEARTBEAT":
+                    self.update_dict_func(data['token'])
+                elif data['msg'] == "POPULATE":
+                    self.populate_dict_func()
+                    
+            except KeyError:
+                print("data received is in wrong format")
 
 def main():
     "Listen to the heartbeats and detect inactive clients"
@@ -226,7 +238,7 @@ def main():
     heartbeat_dict_object = HeartBeatDict()
     heartbeat_dict_object.populate_heartbeat_dict()
     # print(f"Initial heart_beat_dict --> {heartbeat_dict_object.heartbeat_dict}")
-    heat_beat_rec_thread = HeartBeatReceiver(heat_beat_rec_go_on_event, heartbeat_dict_object.update_time_last_heard, HBPORT)
+    heat_beat_rec_thread = HeartBeatReceiver(heat_beat_rec_go_on_event, heartbeat_dict_object.update_time_last_heard, HBPORT, heartbeat_dict_object.populate_heartbeat_dict)
     if __debug__:
         print (heat_beat_rec_thread)
     heat_beat_rec_thread.start()
@@ -240,10 +252,10 @@ def main():
                 print (f"{heartbeat_dict_object}")
             dead = heartbeat_dict_object.extract_dead_nodes(DEAD_INTERVAL)
             if dead:
-                print ("dead Nodes")
+                print ("Dead Nodes")
                 print (f"{dead}")
                 
-            # update the database here 
+            # update the heartbeat_dict here
             heartbeat_dict_object.update_heartbeat_status(dead)
             sleep(DEAD_INTERVAL)
         except KeyboardInterrupt:

@@ -55,7 +55,7 @@ HONEYNODE_COMMAND_PORT = int(config['HONEYNODE']['COMMAND_PORT'])
 
 heartbeat_data = {
     "token": TOKEN,
-    "msg": "HEARTBEATS"
+    "msg": "HEARTBEAT"
 }
 
 heartbeat_data_json = json.dumps(heartbeat_data)
