@@ -151,17 +151,11 @@ class HeartBeatDict:
     def extract_dead_nodes(self, time_limit):
         "Returns a list of entries older than time_limit"
         dead = []
-        # print(f"time --> {time()}")
         when = time() - time_limit
-        # print(f"time_limit --> {time_limit}")
-        # print(f"when --> {when}")
-        # print(type(when))
-        # print("\n")
         self.heartbeat_dict_lock.acquire()
         for key in self.heartbeat_dict.keys():
-            # print(f"self.heartbeat_dict[key][time_last_heard] {self.heartbeat_dict[key]['time_last_heard']}")
-            # print(type(self.heartbeat_dict[key]['time_last_heard']))
             print("\n\n--------------------------")
+            print(key)
             print(self.heartbeat_dict[key])
             print(self.heartbeat_dict[key]['time_last_heard'])
             print(type(self.heartbeat_dict[key]['time_last_heard']))
@@ -217,40 +211,6 @@ class HeartBeatReceiver(Thread):
             # self.update_dict_func(addr[0])
             self.update_dict_func(int(data['token']))
 
-
-"""
-populate_heartbeat_dict() populates the heartbeat_dict with all the active nodes
-    1) at the start of the program
-    2) when a new handshake process with the a honeynode is successful (new honeynode added or old honeynode becoming active again)
-        (flask should open a socket connection with a command, and this command should prompt in
-        running of this method)
-"""
-
-    # 
-    # call the http endpoint on Flask to populate
-
-    # this method should be called 
-
-
-"""
-update_honeynode_status() will update to the flask endpoint when a honeynode has gone slient 
-    Task 1: call the flask endpoint to update the database of the honeynode status --> becomes inactive
-
-    Question: what should i do when a honeynode becomes active again for some reason? How can I update this new status
-        2 scenrios:
-            1)  A new handshake
-                    client clicks on handshake button--> flask 
-                    flask -- sockets --> honeynode 
-                    honeynode -- api --> flask 
-                        flask updates database (client becomes active again)
-                    flask -- sockets --> c2 
-                        c2 runs populate_heartbeat_dict (the old honeynode will now be now be inside the heartbeat_dict)
-            2)  All of a sudden starts getting heartbeats
-
-                thought --> update slient nodes + active nodes to the database? this way we can account for different nodes going dead
-                each time . this is impossbile to do when you only want to access the data base if len(dead) == 0 
-"""
-
 def main():
     "Listen to the heartbeats and detect inactive clients"
     global HBPORT, DEAD_INTERVAL
@@ -302,4 +262,35 @@ if __name__ == '__main__':
 needs two processes 
 1) heartbeats process
 2) command process
+"""
+
+
+
+"""
+update_honeynode_status() will update to the flask endpoint when a honeynode has gone slient 
+    Task 1: call the flask endpoint to update the database of the honeynode status --> becomes inactive
+
+    Question: what should i do when a honeynode becomes active again for some reason? How can I update this new status
+        2 scenrios:
+            1)  A new handshake
+                    client clicks on handshake button--> flask 
+                    flask -- sockets --> honeynode 
+                    honeynode -- api --> flask 
+                        flask updates database (client becomes active again)
+                    flask -- sockets --> c2 
+                        c2 runs populate_heartbeat_dict (the old honeynode will now be now be inside the heartbeat_dict)
+            2)  All of a sudden starts getting heartbeats
+
+                thought --> update slient nodes + active nodes to the database? this way we can account for different nodes going dead
+                each time . this is impossbile to do when you only want to access the data base if len(dead) == 0 
+"""
+
+
+
+"""
+populate_heartbeat_dict() populates the heartbeat_dict with all the active nodes
+    1) at the start of the program
+    2) when a new handshake process with the a honeynode is successful (new honeynode added or old honeynode becoming active again)
+        (flask should open a socket connection with a command, and this command should prompt in
+        running of this method)
 """
