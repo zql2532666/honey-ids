@@ -44,10 +44,10 @@ git checkout v0.2.4
 
 
 # hardcoded variables for testing. to be read from honeyagent config file in future
-$HPF_HOST="192.168.148.146"
-$HPF_PORT=10000
-$HPF_IDENT="test"
-$HPF_SECRET="test"
+HPF_HOST="192.168.148.146"
+HPF_PORT=10000
+HPF_IDENT="drupot"
+HPF_SECRET="drupot"
 
 cat > config.toml<<EOF
 # Drupot Configuration File

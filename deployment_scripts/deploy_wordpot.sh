@@ -40,7 +40,7 @@ sed -i "s/^HOST\s.*/HOST = '0.0.0.0'/" wordpot.conf
 # Note: this will export the HPF_* variables
 # . ./registration.sh $server_url $deploy_key "wordpot"
 
-HPF_HOST="192.168.148.146"
+HPF_HOST=$1
 HPF_PORT=10000
 HPF_IDENT="wordpot"
 HPF_SECRET="wordpot"
