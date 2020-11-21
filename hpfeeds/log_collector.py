@@ -57,7 +57,7 @@ def main():
         #     json.dump(log_data_dict, f, indent=4)
 
         # call api endpoint to store the log/alert in database and display on the webpage
-
+        
 
     def on_error(payload):
         hpc.stop()
