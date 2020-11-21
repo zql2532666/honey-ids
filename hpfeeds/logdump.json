@@ -168,6 +168,30 @@
                 "endTime": "2020-11-21T03:19:06.146636Z",
                 "version": null,
                 "unknownCommands": []
+            },
+            {
+                "peerIP": "192.168.148.146",
+                "commands": [
+                    "ls",
+                    "exit"
+                ],
+                "loggedin": [
+                    "root",
+                    "password"
+                ],
+                "protocol": "ssh",
+                "startTime": "2020-11-21T04:00:08.451570Z",
+                "ttylog": "01000000000000000000000000000000d190b85ff1a2030003000000000000001e01000002000000d190b85fe4a303000a5468652070726f6772616d7320696e636c756465642077697468207468652044656269616e20474e552f4c696e75782073797374656d20617265206672656520736f6674776172653b0a74686520657861637420646973747269627574696f6e207465726d7320666f7220656163682070726f6772616d206172652064657363726962656420696e207468650a696e646976696475616c2066696c657320696e202f7573722f73686172652f646f632f2a2f636f707972696768742e0a0a44656269616e20474e552f4c696e757820636f6d65732077697468204142534f4c5554454c59204e4f2057415252414e54592c20746f2074686520657874656e740a7065726d6974746564206279206170706c696361626c65206c61772e0a03000000000000000400000002000000d190b85f58a703001b5b346803000000000000000f00000002000000d190b85fe6a70300726f6f74407365727665723a7e232003000000000000000100000001000000d390b85ffaa200006c03000000000000000100000002000000d390b85f9ca400006c03000000000000000100000001000000d390b85fa3b402007303000000000000000100000002000000d390b85f85b502007303000000000000000100000001000000d390b85fa97205000d03000000000000000100000002000000d390b85f2f7305000a03000000000000000400000002000000d390b85f807605001b5b346c03000000000000000400000002000000d390b85f427705001b5b346803000000000000000f00000002000000d390b85f96770500726f6f74407365727665723a7e232003000000000000000100000001000000de90b85f0f6708006503000000000000000100000002000000de90b85ff86708006503000000000000000100000001000000de90b85fc0510c007803000000000000000100000002000000de90b85f08520c007803000000000000000100000001000000de90b85fa8da0e006903000000000000000100000002000000de90b85f99db0e006903000000000000000100000001000000df90b85fc5b402007403000000000000000100000002000000df90b85f0bb502007403000000000000000100000001000000df90b85f25a808000d03000000000000000100000002000000df90b85f9ba808000a03000000000000000400000002000000df90b85f5eae08001b5b346c02000000000000000000000000000000df90b85fb0b10800",
+                "hostIP": "192.168.148.149",
+                "peerPort": 49994,
+                "session": "837fa8039696",
+                "urls": [],
+                "hostPort": 22,
+                "credentials": [],
+                "hashes": [],
+                "endTime": "2020-11-21T04:00:31.583244Z",
+                "version": "'SSH-2.0-OpenSSH_8.2p1 Ubuntu-4ubuntu0.1'",
+                "unknownCommands": []
             }
         ]
     },
@@ -228,6 +252,92 @@
                 "agave_username": "efe",
                 "agave_password": "wdwdw",
                 "agave_client_version": "v0.1.2"
+            }
+        ]
+    },
+    "wordpot": {
+        "payloads": [
+            {
+                "username": "ad",
+                "plugin": "badlogin",
+                "url": "http://192.168.148.149/wp-login.php",
+                "source_ip": "192.168.148.1",
+                "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.66 Safari/537.36",
+                "source_port": 20128,
+                "password": "ad",
+                "dest_ip": "0.0.0.0",
+                "dest_port": "80"
+            },
+            {
+                "username": "ad",
+                "plugin": "badlogin",
+                "url": "http://192.168.148.149/wp-login.php",
+                "source_ip": "192.168.148.1",
+                "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.66 Safari/537.36",
+                "source_port": 20128,
+                "password": "ad",
+                "dest_ip": "0.0.0.0",
+                "dest_port": "80"
+            },
+            {
+                "plugin": "commonfiles",
+                "url": "http://192.168.148.149/xmlrpc.php",
+                "source_ip": "192.168.148.128",
+                "filename": "xmlrpc.php",
+                "user_agent": "WPScan v3.8.2 (https://wpscan.org/)",
+                "source_port": 58048,
+                "dest_ip": "0.0.0.0",
+                "dest_port": "80"
+            },
+            {
+                "plugin": "commonfiles",
+                "url": "http://192.168.148.149/readme.html",
+                "source_ip": "192.168.148.128",
+                "filename": "readme.html",
+                "user_agent": "WPScan v3.8.2 (https://wpscan.org/)",
+                "source_port": 58050,
+                "dest_ip": "0.0.0.0",
+                "dest_port": "80"
+            },
+            {
+                "plugin": "commonfiles",
+                "url": "http://192.168.148.149/readme.html",
+                "source_ip": "192.168.148.128",
+                "filename": "readme.html",
+                "user_agent": "WPScan v3.8.2 (https://wpscan.org/)",
+                "source_port": 58052,
+                "dest_ip": "0.0.0.0",
+                "dest_port": "80"
+            },
+            {
+                "plugin": "commonfiles",
+                "url": "http://192.168.148.149/xmlrpc.php",
+                "source_ip": "192.168.148.128",
+                "filename": "xmlrpc.php",
+                "user_agent": "WPScan v3.8.2 (https://wpscan.org/)",
+                "source_port": 58126,
+                "dest_ip": "0.0.0.0",
+                "dest_port": "80"
+            },
+            {
+                "author": "admin",
+                "url": "http://192.168.148.149/?author=1",
+                "plugin": "userenumeration",
+                "source_ip": "192.168.148.128",
+                "user_agent": "WPScan v3.8.2 (https://wpscan.org/)",
+                "source_port": 58134,
+                "dest_ip": "0.0.0.0",
+                "dest_port": "80"
+            },
+            {
+                "author": "admin",
+                "url": "http://192.168.148.149/?author=1",
+                "plugin": "userenumeration",
+                "source_ip": "192.168.148.128",
+                "user_agent": "WPScan v3.8.2 (https://wpscan.org/)",
+                "source_port": 58144,
+                "dest_ip": "0.0.0.0",
+                "dest_port": "80"
             }
         ]
     }
