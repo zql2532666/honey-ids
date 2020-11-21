@@ -6,15 +6,20 @@ The client program, running on any number of computers, periodically sends
 an UDP packet to the server program that runs on one central computer. 
 
 In the server program, one thread dynamically builds and updates 
-a dictionary that stores the IP numbers of the client computers 
-and the timestamp of the last packet received from each. 
+a dictionary that stores the token number of the honeynodes  to the
+timestamp of the last packet received from each and heartbeat_status.
+
+"token" : {
+    heartbeat_status: True,
+    time_last_heard: time() --> need to format this 
+}
 
 At the same time, the main thread of the server program periodically 
 checks the dictionary, noting whether any of the timestamps is older 
 than a defined timeout. 
 
-The packets are sent from each client every 10 seconds, while the server 
-checks the dictionary every 30 seconds, and its timeout defaults to the 
+The packets are sent from each client per HELL_INTERVAL, while the server 
+checks the dictionary as per DEAD_INTERVAL, and its timeout defaults to the 
 same interval.
 
 These parameters, along with the server IP number and port used, can be 
@@ -22,7 +27,7 @@ adapted to one’s needs.
 
 HeartBeat server: receives and tracks UDP packets from all clients.
 
-While the BeatLog thread logs each UDP packet in a dictionary, the main
+While the heart_beat_log thread logs each UDP packet in a dictionary, the main
 thread periodically scans the dictionary and prints the IP addresses of the
 clients that sent at least one packet during the run, but have
 not sent any packet since a time longer than the definition of the timeout.
@@ -78,12 +83,17 @@ from time import time, ctime, sleep
 import sys
 import json
 import requests
+from configparser import ConfigParser
 
+config = ConfigParser()
+config.read('heartbeats_server.conf')
 
-HBPORT = 40000
-DEAD_INTERVAL = 15
-WEB_SERVER_IP = "127.0.0.1"
-WEB_SERVER_PORT = 5000
+HBPORT = int(config['HEARTBEATS']['SERVER_HB_PORT']) 
+HELLO_INTERVAL = int(config['HEARTBEATS']['HELLO_INTERVAL'])   
+DEAD_INTERVAL = int(config['HEARTBEATS']['DEAD_INTERVAL'])   
+WEB_SERVER_IP = config['WEB-SERVER']['SERVER_IP'] 
+WEB_SERVER_PORT = config['WEB-SERVER']['PORT']
+
 API_ENDPOINT = f"http://{WEB_SERVER_IP}:{WEB_SERVER_PORT}/api/v1/heartbeats"
 
 class HeartBeatDict:

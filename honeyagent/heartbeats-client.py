@@ -77,26 +77,3 @@ def send_heartbeats():
 
 send_heartbeats()
 
-
-# process_list=list()
-# if __name__ == '__main__':   
-#     for _ in range(10):
-#         p = multiprocessing.Process(target=send_heartbeats)
-#         p.start()
-#         process_list.append(p)
-
-#     for p in process_list:
-#         p.join()
-
-
-
-"""
-process 1: send_heartbeats --> always running 
-process 2: listen for commands --> always running 
-            when receive a command, make a new thread to process it 
-                p2: threads --> process_command_from_c2()
-                                    send_handshake_data() --> once when the agent receives the "handshake" command
-                                    kill()
-
-"""
-

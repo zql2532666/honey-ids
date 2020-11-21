@@ -1,18 +1,5 @@
 heartbeats-server.py
-	+	test out on ubuntu 20
-	+	integrate with the REST API on flask
-	+	read in the HBPORT + CHECKWAIT from a config file
-	
-heatbeats-client.py
-	+	test out on ubuntu 20
-	+	integrate with the honey agent
-	+	read in HBPORT + BEATWAIT from config file 
+    +   Needs to figure out how to parse the date time format
+        when I get the data from the Flask API
 
-    with socket(AF_INET, SOCK_STREAM) as s:
-        s.connect(('127.0.0.1', 30002))
-        data = {
-            "command" : "kill"
-        }
-        data_json = json.dumps(data)
-        data_encoded = data_json.encode('utf-8')
-        s.sendall(data_encoded)
+    
