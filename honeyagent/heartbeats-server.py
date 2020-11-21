@@ -19,9 +19,8 @@ same interval.
 
 These parameters, along with the server IP number and port used, can be 
 adapted to one’s needs. 
-"""
 
-""" PyHeartBeat server: receives and tracks UDP packets from all clients.
+HeartBeat server: receives and tracks UDP packets from all clients.
 
 While the BeatLog thread logs each UDP packet in a dictionary, the main
 thread periodically scans the dictionary and prints the IP addresses of the
@@ -33,31 +32,32 @@ Adjust the constant parameters as needed, or call as:
 """
 
 """
-1)  wWhen the server is started, it will call the http endpoint on the flask server to 
+
+1)  When the server is started, it will call the http endpoint on the flask server to 
     retrive the honeynodes details
-        def populate_heartbeat_dict():
-            # Query the database for honey node info
-            # GET REQUEST to endpoint on flask
-            # populate the honeynode dictionary
-
-            route("/get_honey_node"):
-                return all_honey_nodes
-            
-            request.get("flaskip/get_honey_node")
-            honeynode_dict = reponse.data
+        populate_heartbeat_dict()
        
-2)  Update the honeynodes of the active status after a period of time or if there is a slient honey node 
-        def update_slient_honeynodes_database():
-            # update the status of slient honeynodes to database (no more heartbeats signals)
-            # POST or PUT REQUEST to endpoint on flask --> this will then update the database 
+2)  The honeynode heartbeat_status is updated every DEAD_INTERVAL
+        update_heartbeat_status()
 
-            route ("/update_honeynode?token=??")
-            # this is to update the honeynode status to the database
-            request.post("flaskip/update_honeynode?token=xxx")
+3)  When a new node is added, the flask API endpoint open a socket connection on the HB_PORT and 
+    send a msg, "POPULATE", this will cause the heartbeat server to run the populate_heartbeat_dict() function
+    again.
 
+populate_heartbeat_dict() populates the heartbeat_dict with all the active nodes
+    1) at the start of the program
+    2) when a new handshake process with the a honeynode is successful (new honeynode added or old honeynode becoming active again)
+        (flask should open a socket connection with a command, and this command should prompt in
+        running of this method)
 
-3) Update the database every 10 min or so 
-        def update_database():
+        Flask: When the endpoint for adding a new node gets run
+            1) checks whether the token exists in the database
+                if exists:
+                    update the heartbeats status 
+                    send msg to heartbeats server to populate the heartbeats dict
+                else:
+                    add new honeynode 
+                    send msg to heartbeats server to populate the heartbeats dict
 
 """
 
@@ -71,25 +71,6 @@ Adjust the constant parameters as needed, or call as:
      When another function wants to use a variable, it must wait until that variable is unlocked.
 """
 
-"""
-        heartbeat_dict should be reconfigure to be in this format
-        heartbeat_dict = {}
-        heatbeat_dict["token"] = {
-        "honeynode_name": "",
-        "ip_addr": "100.10.10.1",
-        "subnet_mask": "255.255.255.0",
-        "honeypot_type": "",
-        "nids_type": "",
-        "deployed_date": "",
-        }
-
-        token will be used to identify unique honey nodes
-
-                
-"""
-HBPORT = 40000
-DEAD_INTERVAL = 15
-WEB_SERVER_IP = "127.0.0.1"
 # from socket import socket, gethostbyname, AF_INET, SOCK_DGRAM, SOCK_STREAM
 import socket
 from threading import Lock, Thread, Event
@@ -97,8 +78,16 @@ from time import time, ctime, sleep
 import sys
 import json
 import requests
+
+
+HBPORT = 40000
+DEAD_INTERVAL = 15
+WEB_SERVER_IP = "127.0.0.1"
+WEB_SERVER_PORT = 5000
+API_ENDPOINT = f"http://{WEB_SERVER_IP}:{WEB_SERVER_PORT}/api/v1/heartbeats"
+
 class HeartBeatDict:
-    "Manage heartbeat dictionaryda f"
+    "Manage heartbeat dictionary"
 
     def __init__(self):
         self.heartbeat_dict = {}
@@ -135,12 +124,13 @@ class HeartBeatDict:
         for key in self.heartbeat_dict.keys():
             # if the node's token can be found in the slient_node_list, the status will be set to False (Dead)
             if key in dead_nodes_list:
-                print(f"dead node found: {key}")
+                # print(f"dead node found: {key}")
                 self.heartbeat_dict[key]['heartbeat_status'] = False
             else:
             # All other nodes, not found in the dead_node_list is set to True (Active)
-                print(f"active node {self.heartbeat_dict[key]}")
+                # print(f"active node {self.heartbeat_dict[key]}")
                 self.heartbeat_dict[key]['heartbeat_status'] = True
+        print(f"\n\nupdate_heartbeat_status\n {self.heartbeat_dict}")
         heartbeat_json = json.dumps(self.heartbeat_dict)
         self.heartbeat_dict_lock.release()
 
@@ -163,7 +153,10 @@ class HeartBeatDict:
     def populate_heartbeat_dict(self):
         self.heartbeat_dict_lock.acquire()
         """ Perform API Call here """
-        API_ENDPOINT = f"{WEB_SERVER_IP}"
+        # API_ENDPOINT = f"{API_ENDPOINT}/heartbeats"
+        # API_ENDPOINT
+        # r = requests.get(API_ENDPOINT)
+        # print(f"populate data successful --> {r.status_code}")
 
         print("populating heartbeat dict")
         self.heartbeat_dict = {
@@ -260,31 +253,5 @@ if __name__ == '__main__':
     main()
 
 
-"""
-update_honeynode_status() will update to the flask endpoint when a honeynode has gone slient 
-    Task 1: call the flask endpoint to update the database of the honeynode status --> becomes inactive
-
-    Question: what should i do when a honeynode becomes active again for some reason? How can I update this new status
-        2 scenrios:
-            1)  A new handshake
-                    client clicks on handshake button--> flask 
-                    flask -- sockets --> honeynode 
-                    honeynode -- api --> flask 
-                        flask updates database (client becomes active again)
-                    flask -- sockets --> c2 
-                        c2 runs populate_heartbeat_dict (the old honeynode will now be now be inside the heartbeat_dict)
-            2)  All of a sudden starts getting heartbeats
-
-                thought --> update slient nodes + active nodes to the database? this way we can account for different nodes going dead
-                each time . this is impossbile to do when you only want to access the data base if len(dead) == 0 
-"""
 
 
-
-"""
-populate_heartbeat_dict() populates the heartbeat_dict with all the active nodes
-    1) at the start of the program
-    2) when a new handshake process with the a honeynode is successful (new honeynode added or old honeynode becoming active again)
-        (flask should open a socket connection with a command, and this command should prompt in
-        running of this method)
-"""
