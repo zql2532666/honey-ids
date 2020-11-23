@@ -19,7 +19,9 @@ CHANNELS = [
     "wordpot.events",
     "conpot.events",
     "elastichoney.events",
-    "shockpot.events"
+    "shockpot.events",
+    "sticky_elephant.connections", 
+    "sticky_elephant.queries"
 ]
 
 IDENT = 'collector'
