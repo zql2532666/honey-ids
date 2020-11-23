@@ -15,7 +15,7 @@ HPF_PORT=10000
 HPF_IDENT="shockpot"
 HPF_SECRET="shockpot"
 
-sudo apt install python-pip
+sudo apt install -y python-pip
 pip install -U pip
 apt-get update
 apt-get -y install git python-pip supervisor
