@@ -57,7 +57,7 @@ if __name__ == '__main__':
             "identifier":"collector",
             "owner": "honeyids",
             "secret": "collector",
-            "subchans": ["wordpot.events", "agave.events", "snort.alerts", "cowrie.sessions", "conpot.events", "elastichoney.events", "shockpot.events"],
+            "subchans": ["wordpot.events", "agave.events", "snort.alerts", "cowrie.sessions", "conpot.events", "elastichoney.events", "shockpot.events", "sticky_elephant.connections", "sticky_elephant.queries"],
             "pubchans": []
   
         },
@@ -71,11 +71,11 @@ if __name__ == '__main__':
         },
 
         {
-            "identifier":"test_user",
+            "identifier":"sticky_elephant",
             "owner": "honeyids",
-            "secret": "test",
-            "subchans": ["wordpot.events"],
-            "pubchans": []
+            "secret": "sticky_elephant",
+            "subchans": [],
+            "pubchans": ["sticky_elephant.connections", "sticky_elephant.queries"]
         }
     ]
 
