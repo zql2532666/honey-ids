@@ -11,7 +11,7 @@ timestamp of the last packet received from each and heartbeat_status.
 
 "token" : {
     heartbeat_status: True,
-    time_last_heard: time() --> need to format this 
+    last_heard: time() --> need to format this 
 }
 
 At the same time, the main thread of the server program periodically 
@@ -116,16 +116,16 @@ class HeartBeatDict:
     #     return list
 
     # this updates the last_heard_time for each indiv nodes
-    def update_time_last_heard(self, entry):
+    def update_last_heard(self, entry):
         "Create or update a dictionary entry"
         self.heartbeat_dict_lock.acquire()
-        print(f"entry --> {entry}")
+        # print(f"entry --> {entry}")
         # print(self.heartbeat_dict.keys())
         for key in self.heartbeat_dict.keys():
             if entry == key:
-                print(f"time update success for token == {entry}")
-                print(self.heartbeat_dict[key])
-                self.heartbeat_dict[entry]['time_last_heard'] = time()
+                # print(f"time update success for token == {entry}")
+                # print(self.heartbeat_dict[key])
+                self.heartbeat_dict[entry]['last_heard'] = time()
         self.heartbeat_dict_lock.release()
 
     # this updates the heartbeat_status of all the nodes in the heartbeat_dict after the dead interval
@@ -145,7 +145,7 @@ class HeartBeatDict:
         self.heartbeat_dict_lock.release()
 
         """ perform api call to flask here """ 
-        API_ENDPOINT = f"{WEB_SERVER_IP}"
+        # API_ENDPOINT = f"{WEB_SERVER_IP}"
 
 
     def extract_dead_nodes(self, time_limit):
@@ -154,7 +154,7 @@ class HeartBeatDict:
         when = time() - time_limit
         self.heartbeat_dict_lock.acquire()
         for key in self.heartbeat_dict.keys():
-            if self.heartbeat_dict[key]['time_last_heard'] < when:
+            if self.heartbeat_dict[key]['last_heard'] < when:
                 dead.append(key)
         self.heartbeat_dict_lock.release()
         return dead
@@ -162,23 +162,26 @@ class HeartBeatDict:
     # Need to find a way to call this again when a new node is added
     def populate_heartbeat_dict(self):
         self.heartbeat_dict_lock.acquire()
-        """ Perform API Call here """
-        # API_ENDPOINT = f"{API_ENDPOINT}/heartbeats"
-        # API_ENDPOINT
-        # r = requests.get(API_ENDPOINT)
-        # print(f"populate data successful --> {r.status_code}")
-
         print("populating heartbeat dict")
-        self.heartbeat_dict = {
-            "a1": {
-                    'heartbeat_status' : True, 
-                    'time_last_heard' : time()
-                },
-            "b2": {
-                    'heartbeat_status' : False, 
-                    'time_last_heard' : time()
-                }
-        }
+        """ Perform API Call here """
+        r = requests.get(API_ENDPOINT)
+        
+        print(f"populate data successful --> {r.status_code}")
+        # if r.status_code == '200':
+        if r.json():
+            self.heartbeat_dict = r.json()
+
+        print(f"populated heartbeat dict {self.heartbeat_dict}")
+        # self.heartbeat_dict = {
+        #     "a1": {
+        #             'heartbeat_status' : True, 
+        #             'last_heard' : time()
+        #         },
+        #     "b2": {
+        #             'heartbeat_status' : False, 
+        #             'last_heard' : time()
+        #         }
+        # }
         self.heartbeat_dict_lock.release()
 
 class HeartBeatReceiver(Thread):
@@ -231,7 +234,7 @@ def main():
     heartbeat_dict_object = HeartBeatDict()
     heartbeat_dict_object.populate_heartbeat_dict()
     # print(f"Initial heart_beat_dict --> {heartbeat_dict_object.heartbeat_dict}")
-    heat_beat_rec_thread = HeartBeatReceiver(heat_beat_rec_go_on_event, heartbeat_dict_object.update_time_last_heard, HBPORT, heartbeat_dict_object.populate_heartbeat_dict)
+    heat_beat_rec_thread = HeartBeatReceiver(heat_beat_rec_go_on_event, heartbeat_dict_object.update_last_heard, HBPORT, heartbeat_dict_object.populate_heartbeat_dict)
     if __debug__:
         print (heat_beat_rec_thread)
     heat_beat_rec_thread.start()
