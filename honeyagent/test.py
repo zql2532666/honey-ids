@@ -1,4 +1,6 @@
 import time 
+import json
+import requests
 # return_db_data = [
 #     {"heartbeat_status": True, 
 #     "token": "1", 
@@ -28,19 +30,49 @@ import time
 # print(f"time_2 {time_2}")
 # print(f"{time_2[0]}-{time_2[1]}-{time_2[2]} {time_2[3]}:{time_2[4]}:{time_2[5]}")
 
-data_heartbeats_server = {
-    '1': {'heartbeat_status': False, 'last_heard': 1577844610.0}, 
-    '2': {'heartbeat_status': False, 'last_heard': 1577844610.0}
-    }
-db_data = {}
+# data_heartbeats_server = {
+#     '1': {'heartbeat_status': False, 'last_heard': 1577844610.0}, 
+#     '2': {'heartbeat_status': False, 'last_heard': 1577844610.0}
+#     }
+# db_data = {}
 
-for key in data_heartbeats_server.keys():  
-    print(data_heartbeats_server[key])
-    # print(data_heartbeats_server[key]['last_heard'])
+# for key in data_heartbeats_server.keys():  
+#     print(data_heartbeats_server[key])
+#     # print(data_heartbeats_server[key]['last_heard'])
     
-    last_heard_epoch = float(data_heartbeats_server[key]['last_heard'])
-    print(f"last_heard_epoch: {last_heard_epoch}")
-    last_heard_struct_time = time.localtime(last_heard_epoch)
-    last_heard = f"{last_heard_struct_time[0]}-{last_heard_struct_time[1]}-{last_heard_struct_time[2]} {last_heard_struct_time[3]}:{last_heard_struct_time[4]}:{last_heard_struct_time[5]}"
-    print(f"last_heard final : {last_heard}\n")
-    # print(last_heard)
+    # last_heard_epoch = float(data_heartbeats_server[key]['last_heard'])
+    # print(f"last_heard_epoch: {last_heard_epoch}")
+    # last_heard_struct_time = time.localtime(last_heard_epoch)
+    # last_heard = f"{last_heard_struct_time[0]}-{last_heard_struct_time[1]}-{last_heard_struct_time[2]} {last_heard_struct_time[3]}:{last_heard_struct_time[4]}:{last_heard_struct_time[5]}"
+    # print(f"last_heard final : {last_heard}\n")
+    # # print(last_heard)
+
+{'heartbeat_status': True, 'last_heard': 1607935547.7059884}
+last_heard = 1607935547.7059884
+print(last_heard)
+last_heard_epoch = float(last_heard)
+last_heard_struct_time = time.localtime(last_heard_epoch)
+last_heard = f"{last_heard_struct_time[0]}-{last_heard_struct_time[1]}-{last_heard_struct_time[2]} {last_heard_struct_time[3]}:{last_heard_struct_time[4]}:{last_heard_struct_time[5]}"
+print(last_heard)
+
+
+# WEB_SERVER_IP = '127.0.0.1'
+# WEB_SERVER_PORT= 5000
+# API = f"http://{WEB_SERVER_IP}:{WEB_SERVER_PORT}/api/v1/heartbeats"
+
+# test_data = {
+#   "1": {
+#     "heartbeat_status": "True", 
+#     "time_last_heard": "2020-01-01 10:10:10"
+#   }, 
+#   "2": {
+#     "heartbeat_status": "False", 
+#     "time_last_heard": "2020-01-01 10:10:10"
+#   }
+# }
+# headers = {'content-type': 'application/json'}
+
+# json_data = json.dumps(test_data)
+
+# requests.post(API, data=json_data, headers=headers)
+

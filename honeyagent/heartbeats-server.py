@@ -118,6 +118,7 @@ class HeartBeatDict:
     # this updates the last_heard_time for each indiv nodes
     def update_last_heard(self, entry):
         "Create or update a dictionary entry"
+        print("update_last_heard")
         self.heartbeat_dict_lock.acquire()
         # print(f"entry --> {entry}")
         # print(self.heartbeat_dict.keys())
@@ -144,8 +145,12 @@ class HeartBeatDict:
         heartbeat_json = json.dumps(self.heartbeat_dict)
         self.heartbeat_dict_lock.release()
 
-        """ perform api call to flask here """ 
-        # API_ENDPOINT = f"{WEB_SERVER_IP}"
+        """ perform api call to flask here """
+        try:
+            headers = {'content-type': 'application/json'}
+            requests.post(API_ENDPOINT, data=heartbeat_json, headers=headers)
+        except Exception as err:
+            print(err)
 
 
     def extract_dead_nodes(self, time_limit):
@@ -164,14 +169,15 @@ class HeartBeatDict:
         self.heartbeat_dict_lock.acquire()
         print("populating heartbeat dict")
         """ Perform API Call here """
-        r = requests.get(API_ENDPOINT)
-        
-        print(f"populate data successful --> {r.status_code}")
-        # if r.status_code == '200':
-        if r.json():
-            self.heartbeat_dict = r.json()
+        try:
+            r = requests.get(API_ENDPOINT)
+            print(f"populate data successful --> {r.status_code}")
+            if r.json():
+                self.heartbeat_dict = r.json()
+            print(f"populated heartbeat dict {self.heartbeat_dict}")
+        except Exception as err:
+            print(err)
 
-        print(f"populated heartbeat dict {self.heartbeat_dict}")
         # self.heartbeat_dict = {
         #     "a1": {
         #             'heartbeat_status' : True, 
@@ -183,6 +189,7 @@ class HeartBeatDict:
         #         }
         # }
         self.heartbeat_dict_lock.release()
+        # sleep(10)
 
 class HeartBeatReceiver(Thread):
     "Receive UDP packets, log them in heartbeat dictionary"
@@ -201,19 +208,22 @@ class HeartBeatReceiver(Thread):
 
     def run(self):
         while self.go_on_event.isSet():
-            if __debug__:
-                print ("Waiting to receive...")
+            # if __debug__:
+            #     print ("Waiting to receive...")
             data, addr = self.receive_socket.recvfrom(1024)
             data = data.decode('utf-8')
             data = json.loads(data)
-            if __debug__:
-                print (f"Received packet from {addr}") 
+            # if __debug__:
+            #     print (f"Received packet from {addr}") 
+            print (f"Received packet from {addr}") 
             # updates the heartbeat dictionary, addr[0] contains the ip address of the sender
             # self.update_dict_func(addr[0])
             try:
                 if data['msg'] == "HEARTBEAT":
                     self.update_dict_func(data['token'])
                 elif data['msg'] == "POPULATE":
+                    # POPULATE Might give us some issues, since it might reset the heartbeat status of 
+                    # the nodes to False
                     self.populate_dict_func()
                     
             except KeyError:
@@ -226,6 +236,9 @@ def main():
         HBPORT=sys.argv[1]
     if len(sys.argv)>2:
         DEAD_INTERVAL=sys.argv[2]
+
+    print (f"HeartBeats server listening on port {HBPORT}") 
+    print ("\n*** Press Ctrl-C to stop ***\n")
     # Event() --> The internal flag is initially false
     heat_beat_rec_go_on_event = Event()
 
@@ -235,21 +248,19 @@ def main():
     heartbeat_dict_object.populate_heartbeat_dict()
     # print(f"Initial heart_beat_dict --> {heartbeat_dict_object.heartbeat_dict}")
     heat_beat_rec_thread = HeartBeatReceiver(heat_beat_rec_go_on_event, heartbeat_dict_object.update_last_heard, HBPORT, heartbeat_dict_object.populate_heartbeat_dict)
-    if __debug__:
-        print (heat_beat_rec_thread)
+    # if __debug__:
+    #     print (heat_beat_rec_thread)
     heat_beat_rec_thread.start()
-    print (f"HeartBeats server listening on port {HBPORT}") 
-    print ("\n*** Press Ctrl-C to stop ***\n")
-
+    sleep(15)
     while 1:
         try:
-            if __debug__:
-                print ("HeartBeat Dictionary")
-                print (f"{heartbeat_dict_object}")
+            # if __debug__:
+            #     print ("HeartBeat Dictionary")
+            #     print (f"{heartbeat_dict_object}")
             dead = heartbeat_dict_object.extract_dead_nodes(DEAD_INTERVAL)
             if dead:
-                print ("Dead Nodes")
-                print (f"{dead}")
+                print("Dead Nodes")
+                print(f"{dead}")
                 
             # update the heartbeat_dict here
             heartbeat_dict_object.update_heartbeat_status(dead)

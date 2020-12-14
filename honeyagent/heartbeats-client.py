@@ -8,8 +8,6 @@ from socket import socket, AF_INET, SOCK_DGRAM,SOCK_STREAM
 import socket
 from time import time, ctime, sleep
 import sys
-import multiprocessing
-import threading
 import json
 from configparser import ConfigParser
 # import socket
@@ -47,7 +45,7 @@ heartbeat_data = {
 
 heartbeat_data_json = json.dumps(heartbeat_data)
 
-print (f"HeartBeat client sending to IP {SERVER_IP} , {SERVER_HB_PORT}")
+print ("HeartBeat client sending to IP {} , {}".format(SERVER_IP, SERVER_HB_PORT))
 print ("\n*** Press Ctrl-C to terminate ***\n")
 def send_heartbeats():
     data_encoded = heartbeat_data_json.encode('utf-8')
@@ -57,10 +55,11 @@ def send_heartbeats():
             while 1:
                 hbsocket.sendto(data_encoded, (SERVER_IP, SERVER_HB_PORT))
                 if __debug__:
-                    print (f"Time: {ctime(time())}")
+                    print ("Time: {}".format(ctime(time())))
                 sleep(HELLO_INTERVAL)
     except socket.error as e:
-        print(f"Error creating HeartBeat Socket\n {e}")
+        print("Error creating HeartBeat Socket\n")
+        print(e)
 
 send_heartbeats()
 
