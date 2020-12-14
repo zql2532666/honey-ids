@@ -1,7 +1,7 @@
 """ 
-HeartBeat client: sends an UDP packet to a given server every 10 seconds.
+HeartBeat client: sends an UDP packet to a given server every HELLO_INTERVAL (5 seconds).
 
-    Adjust the constant parameters as needed, in honeyagent.conf
+Adjust the constant parameters as needed, in honeyagent.conf
 """
 
 from socket import socket, AF_INET, SOCK_DGRAM,SOCK_STREAM
@@ -10,7 +10,9 @@ from time import time, ctime, sleep
 import sys
 import json
 from configparser import ConfigParser
-# import socket
+import os 
+import socket
+import threading
 
 """
 heart beat signals will sent to the server (SERVIERIP) per time specified 
@@ -45,21 +47,35 @@ heartbeat_data = {
 
 heartbeat_data_json = json.dumps(heartbeat_data)
 
-print ("HeartBeat client sending to IP {} , {}".format(SERVER_IP, SERVER_HB_PORT))
-print ("\n*** Press Ctrl-C to terminate ***\n")
 def send_heartbeats():
+    print ("HeartBeat client sending to IP {} , {}".format(SERVER_IP, SERVER_HB_PORT))
+    print ("\n*** Press Ctrl-C to terminate ***\n")
     data_encoded = heartbeat_data_json.encode('utf-8')
     # print(f"heartbeats size: {len(data_encoded)}")
     try:
         with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as hbsocket:
             while 1:
                 hbsocket.sendto(data_encoded, (SERVER_IP, SERVER_HB_PORT))
-                if __debug__:
-                    print ("Time: {}".format(ctime(time())))
+                print ("Heartbeat Time: {}".format(ctime(time())))
                 sleep(HELLO_INTERVAL)
     except socket.error as e:
         print("Error creating HeartBeat Socket\n")
         print(e)
 
-send_heartbeats()
+def kill():
+    receive_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    receive_socket.bind(('', 8888))
+    data, addr = receive_socket.recvfrom(1024)
+    data = data.decode('utf-8')
+    data = json.loads(data)
+    print("data: {} from {}".format(data,addr))
+    if data['msg'] == 'KILL':
+        print("Shutting Down Virtual Machine")
+        cmd = "init 0"
+        os.system(cmd)
+
+send_heartbeats_thread = threading.Thread(target=send_heartbeats)
+kill_thread = threading.Thread(target=kill)
+send_heartbeats_thread.start()
+kill_thread.start()
 
