@@ -81,5 +81,5 @@ def listen_for_command():
 send_heartbeats_thread = threading.Thread(target=send_heartbeats)
 listen_for_command_thread = threading.Thread(target=listen_for_command)
 send_heartbeats_thread.start()
-kill_thread.start()
+listen_for_command_thread.start()
 
