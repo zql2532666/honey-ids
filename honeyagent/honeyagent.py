@@ -39,7 +39,6 @@ HONEYNODE_HONEYPOT_TYPE = config['HONEYNODE']['HONEYPOT_TYPE']
 HONEYNODE_NIDS_TYPE = config['HONEYNODE']['NIDS_TYPE']
 HONEYNODE_DEPLOYED_DATE = config['HONEYNODE']['DEPLOYED_DATE']
 HONEYNODE_COMMAND_PORT = int(config['HONEYNODE']['COMMAND_PORT'])
-HONEYNODE_KILL_PORT = int(config['HONEYNODE']['KILL_PORT'])
 
 heartbeat_data = {
     "token": TOKEN,
@@ -63,20 +62,24 @@ def send_heartbeats():
         print("Error creating HeartBeat Socket\n")
         print(e)
 
-def kill():
+def kill(): 
+    print("Shutting Down Virtual Machine")
+    cmd = "init 0"
+    os.system(cmd)
+
+def listen_for_command():
     receive_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    receive_socket.bind(('', 8888))
+    receive_socket.bind(('', HONEYNODE_COMMAND_PORT))
     data, addr = receive_socket.recvfrom(1024)
     data = data.decode('utf-8')
     data = json.loads(data)
     print("data: {} from {}".format(data,addr))
-    if data['msg'] == 'KILL':
-        print("Shutting Down Virtual Machine")
-        cmd = "init 0"
-        os.system(cmd)
+    if data['command'] == 'KILL':
+        kill()
+
 
 send_heartbeats_thread = threading.Thread(target=send_heartbeats)
-kill_thread = threading.Thread(target=kill)
+listen_for_command_thread = threading.Thread(target=listen_for_command)
 send_heartbeats_thread.start()
 kill_thread.start()
 
