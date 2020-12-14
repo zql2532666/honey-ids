@@ -1,10 +1,11 @@
 {
   "1": {
     "heartbeat_status": "True", 
-    "time_last_heard": "2020-01-01 10:10:10"
+    "last_heard": "2020-01-01 10:10:10"
   }, 
   "2": {
     "heartbeat_status": "False", 
-    "time_last_heard": "2020-01-01 10:10:10"
+    "last_heard": "2020-01-01 10:10:10"
   }
 }
+

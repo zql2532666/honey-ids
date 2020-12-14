@@ -101,31 +101,15 @@ class HeartBeatDict:
 
     def __init__(self):
         self.heartbeat_dict = {}
-        # if __debug__:
-        #     # self.heartbeat_dict['127.0.0.1'] = time()
-        #     self.heartbeat_dict[5] = time()
         self.heartbeat_dict_lock = Lock()
-
-    # def __repr__(self):
-    #     list = ''
-    #     self.heartbeat_dict_lock.acquire()
-    #     for key in self.heartbeat_dict.keys():
-    #         list = "%sIP address: %s - Last time: %s\n" % (
-    #             list, key, ctime(self.heartbeat_dict[key]))
-    #     self.heartbeat_dict_lock.release()
-    #     return list
 
     # this updates the last_heard_time for each indiv nodes
     def update_last_heard(self, entry):
         "Create or update a dictionary entry"
         print("update_last_heard")
         self.heartbeat_dict_lock.acquire()
-        # print(f"entry --> {entry}")
-        # print(self.heartbeat_dict.keys())
         for key in self.heartbeat_dict.keys():
             if entry == key:
-                # print(f"time update success for token == {entry}")
-                # print(self.heartbeat_dict[key])
                 self.heartbeat_dict[entry]['last_heard'] = time()
         self.heartbeat_dict_lock.release()
 
@@ -135,11 +119,9 @@ class HeartBeatDict:
         for key in self.heartbeat_dict.keys():
             # if the node's token can be found in the slient_node_list, the status will be set to False (Dead)
             if key in dead_nodes_list:
-                # print(f"dead node found: {key}")
                 self.heartbeat_dict[key]['heartbeat_status'] = False
             else:
             # All other nodes, not found in the dead_node_list is set to True (Active)
-                # print(f"active node {self.heartbeat_dict[key]}")
                 self.heartbeat_dict[key]['heartbeat_status'] = True
         print(f"\n\nupdate_heartbeat_status\n {self.heartbeat_dict}")
         heartbeat_json = json.dumps(self.heartbeat_dict)
@@ -177,19 +159,7 @@ class HeartBeatDict:
             print(f"populated heartbeat dict {self.heartbeat_dict}")
         except Exception as err:
             print(err)
-
-        # self.heartbeat_dict = {
-        #     "a1": {
-        #             'heartbeat_status' : True, 
-        #             'last_heard' : time()
-        #         },
-        #     "b2": {
-        #             'heartbeat_status' : False, 
-        #             'last_heard' : time()
-        #         }
-        # }
         self.heartbeat_dict_lock.release()
-        # sleep(10)
 
 class HeartBeatReceiver(Thread):
     "Receive UDP packets, log them in heartbeat dictionary"
@@ -208,16 +178,10 @@ class HeartBeatReceiver(Thread):
 
     def run(self):
         while self.go_on_event.isSet():
-            # if __debug__:
-            #     print ("Waiting to receive...")
             data, addr = self.receive_socket.recvfrom(1024)
             data = data.decode('utf-8')
             data = json.loads(data)
-            # if __debug__:
-            #     print (f"Received packet from {addr}") 
             print (f"Received packet from {addr}") 
-            # updates the heartbeat dictionary, addr[0] contains the ip address of the sender
-            # self.update_dict_func(addr[0])
             try:
                 if data['msg'] == "HEARTBEAT":
                     self.update_dict_func(data['token'])
@@ -246,17 +210,11 @@ def main():
     heat_beat_rec_go_on_event.set()
     heartbeat_dict_object = HeartBeatDict()
     heartbeat_dict_object.populate_heartbeat_dict()
-    # print(f"Initial heart_beat_dict --> {heartbeat_dict_object.heartbeat_dict}")
     heat_beat_rec_thread = HeartBeatReceiver(heat_beat_rec_go_on_event, heartbeat_dict_object.update_last_heard, HBPORT, heartbeat_dict_object.populate_heartbeat_dict)
-    # if __debug__:
-    #     print (heat_beat_rec_thread)
     heat_beat_rec_thread.start()
-    sleep(15)
+    sleep(DEAD_INTERVAL)
     while 1:
         try:
-            # if __debug__:
-            #     print ("HeartBeat Dictionary")
-            #     print (f"{heartbeat_dict_object}")
             dead = heartbeat_dict_object.extract_dead_nodes(DEAD_INTERVAL)
             if dead:
                 print("Dead Nodes")
