@@ -27,7 +27,6 @@ config.read('honeyagent.conf')
 SERVER_IP = config['C2-SERVER']['SERVER_IP']                    
 SERVER_HB_PORT = int(config['HEARTBEATS']['SERVER_HB_PORT'])            
 HELLO_INTERVAL = int(config['HEARTBEATS']['HELLO_INTERVAL'])               
-SERVER_HANDSHAKE_PORT = int(config['C2-SERVER']['SERVER_HANDSHAKE_PORT'])
 
 
 # HONEYNODE INFO

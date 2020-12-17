@@ -17,11 +17,12 @@ CHANNELS = [
     "snort.alerts",
     "agave.events",     # for drupot
     "wordpot.events",
-    "conpot.events",
     "elastichoney.events",
     "shockpot.events",
     "sticky_elephant.connections", 
-    "sticky_elephant.queries"
+    "sticky_elephant.queries",
+    "dionaea.connections", 
+    "dionaea.capture"
 ]
 
 IDENT = 'collector'
