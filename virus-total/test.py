@@ -23,3 +23,9 @@ with open('return-api-format.txt','r') as r:
 input_dict = json.loads(input[0])
 print(input_dict.keys())
 print(f"sha256 --> {input_dict['sha256']}")
+print(f"sha1 --> {input_dict['sha1']}")
+print(f"md5 --> {input_dict['md5']}")
+print(f"total --> {input_dict['total']}")
+print(f"positives --> {input_dict['positives']}")
+
+
