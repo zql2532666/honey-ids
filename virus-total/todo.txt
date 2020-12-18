@@ -1,8 +1,8 @@
 
 Program flow
 
-1. dioena sends over malware file over hpfeeds 
-2. this file is passed to the hash function
+1. dioena sends over malware file over hpfeeds --> stored in folder/database
+2. malware file is passed to the hash function
 3. the hash is submitted to virus total
 4. virus total returns the results
 5. the results are stored in database (have to call the flask web api)
