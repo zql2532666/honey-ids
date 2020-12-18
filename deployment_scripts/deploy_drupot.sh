@@ -6,17 +6,24 @@
 set -e
 set -x
 
-if [ $# -ne 1 ]
+if [ $# -ne 3 ]
     then
         echo "Wrong number of arguments supplied."
-        echo "Usage: $0 <server_url>."
+        echo "Usage: $0 <server_ip> <honeynode_token> <honeynode_name>"
         exit 1
 fi
 
-server_url=$1
+SERVER_IP=$1
+TOKEN=$2
+HONEYNODE_NAME=$3
+
+INTERFACE=$(basename -a /sys/class/net/e*)
+IP_ADDR=$(ip addr show dev $INTERFACE | grep "inet" | awk 'NR==1{print $2}' | cut -d '/' -f 1)
+SUBNET=$(ifconfig $INTERFACE | grep "Mask:" | awk '{print $4}' | cut -d ':' -f 2)
+DEPLOY_DATE=$(date +"%Y-%m-%d %T")
 
 apt-get update
-apt-get -y install git supervisor
+apt-get -y install git supervisor curl
 
 ####################################################################
 # Install a decent version of golang
