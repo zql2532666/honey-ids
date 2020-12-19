@@ -6,36 +6,38 @@ INTERFACE=$(basename -a /sys/class/net/e*)
 set -e
 set -x
 
-if [ $# -ne 1 ]
-    then
-        if [ $# -eq 2 ]
-          then
-            INTERFACE=$2
-          else
-            echo "Wrong number of arguments supplied."
-            echo "Usage: $0 <server_url>."
-            exit 1
-        fi
+#if [ $# -ne 2 ]
+#    then
+#        if [ $# -eq 3 ]
+#          then
+#            INTERFACE=$3
+#          else
+#            echo "Wrong number of arguments supplied."
+#            echo "Usage: $0 <server_ip> <token>."
+#            exit 1
+#        fi
 
-fi
+#fi
 
 compareint=$(echo "$INTERFACE" | wc -w)
 
 
-if [ "$INTERFACE" = "e*" ] || [ "$compareint" -ne 1 ]
-    then
-        echo "No Interface selectable, please provide manually."
-        echo "Usage: $0 <server_url> <INTERFACE>"
-        exit 1
-fi
+# if [ "$INTERFACE" = "e*" ] || [ "$compareint" -ne 1 ]
+#    then
+#        echo "No Interface selectable, please provide manually."
+#        echo "Usage: $0 <server_url> <INTERFACE>"
+#        exit 1
+#fi
 
 
-server_url=$1
+SERVER_IP=$(cat /opt/honeyagent/honeyagent.conf | grep "SERVER_IP" | awk -F: '{print $2}' | xargs)
+TOKEN=$(cat /opt/honeyagent/honeyagent.conf | grep "TOKEN" | awk -F: '{print $2}' | xargs)
+
 
 apt-get update
 DEBIAN_FRONTEND=noninteractive apt-get -y install build-essential libpcap-dev libjansson-dev libpcre3-dev libdnet-dev libdumbnet-dev libdaq-dev flex bison python-pip git make automake libtool zlib1g-dev
 
-# without the following 2 commands, i get this error:  -- rongtao
+# without the following 2 commands, i get this error:
 # Command "python setup.py egg_info" failed with error code 1 in /tmp/pip-build-Vdd4DT/setuptools/
 # solution found: https://github.com/googleapis/google-cloud-python/issues/3884
 pip install --upgrade pip
@@ -49,7 +51,7 @@ pip install virtualenv
 
 cd /tmp
 rm -rf libev*
-wget https://github.com/pwnlandia/hpfeeds/releases/download/libev-4.15/libev-4.15.tar.gz
+wget https://github.com/zql2532666/hpfeeds/raw/master/libev-4.15.tar.gz
 tar zxvf libev-4.15.tar.gz 
 cd libev-4.15
 ./configure && make && make install
@@ -78,23 +80,17 @@ touch  /opt/snort/rules/black_list.rules
 
 
 cd /opt/snort/etc/
-# out prefix is /opt/snort not /usr/local...
 sed -i 's#/usr/local/#/opt/snort/#' snort.conf 
 
-
-# disable all the built in rules
 sed -i -r 's,include \$RULE_PATH/(.*),# include $RULE_PATH/\1,' snort.conf
 
-# enable our local rules
 sed -i 's,# include $RULE_PATH/local.rules,include $RULE_PATH/local.rules,' snort.conf
 
-# enable hpfeeds !!!!!!!!!!!!!!!!!! TO BE DONE 
-
-# hardcoded variables for testing. to be read from honeyagent config file in future
-HPF_HOST=$1     # same as server url for now
-HPF_PORT=10000
-HPF_IDENT="snort"
-HPF_SECRET="snort"
+# enable hpfeeds
+HPF_HOST=$SERVER_IP
+HPF_PORT=$(cat /opt/honeyagent/honeyagent.conf | grep "HPFEEDS_PORT" | awk -F: '{print $2}' | xargs)
+HPF_IDENT=$TOKEN
+HPF_SECRET=$TOKEN
 
 sed -i "s/# hpfeeds/# hpfeeds\noutput log_hpfeeds: host $HPF_HOST, ident $HPF_IDENT, secret $HPF_SECRET, channel snort.alerts, port $HPF_PORT/" snort.conf 
 

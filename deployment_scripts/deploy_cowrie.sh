@@ -36,12 +36,42 @@ sed -i 's/Port 22$/Port 2222/g' /etc/ssh/sshd_config
 service ssh restart
 useradd -d /home/cowrie -s /bin/bash -m cowrie -g users
 
+# download honeyagent scripts and configuration file from main server
+mkdir /opt/honeyagent
+cd /opt/honeyagent
+wget http://$SERVER_IP:5000/api/v1/deployment_script/honeyagent -O honeyagent.py
+wget http://$SERVER_IP:5000/api/v1/deployment_script/honeyagent_conf_file -O honeyagent.conf
+
+# populate the honeyagent config file
+sed -i "s/TOKEN:/TOKEN: $TOKEN/g" honeyagent.conf
+sed -i "s/HONEYNODE_NAME:/HONEYNODE_NAME: $HONEYNODE_NAME/g" honeyagent.conf
+sed -i "s/IP:/IP: $IP/g" honeyagent.conf
+sed -i "s/SUBNET_MASK:/SUBNET_MASK: $SUBNET/g" honeyagent.conf
+sed -i "s/HONEYPOT_TYPE:/HONEYPOT_TYPE: cowrie/g" honeyagent.conf
+sed -i "s/NIDS_TYPE:/NIDS_TYPE: snort/g" honeyagent.conf
+sed -i "s/DEPLOYED_DATE:/DEPLOYED_DATE: $DEPLOY_DATE/g" honeyagent.conf
+sed -i "s/SERVER_IP:/SERVER_IP: $SERVER_IP/g" honeyagent.conf
+
 cd /opt
 git clone https://github.com/zql2532666/cowrie.git cowrie
 cd cowrie
 
 # Most recent known working version
 git checkout 34f8464
+
+# API call to join the honeynet
+curl -X POST -H "Content-Type: application/json" -d "{
+	\"honeynode_name\" : \"$HONEYNODE_NAME\",
+	\"ip_addr\" : \"$IP_ADDR\",
+	\"subnet_mask\" : \"$SUBNET\",
+	\"honeypot_type\" : \"cowrie\",
+	\"nids_type\" : \"snort\",
+	\"no_of_attacks\" : \"0\",
+	\"date_deployed\" : \"$DEPLOY_DATE\",
+	\"heartbeat_status\" : \"False\",
+	\"last_heard\" : \"$DEPLOY_DATE\",
+	\"token\" : \"$TOKEN\"
+}" http://$SERVER_IP:5000/api/v1/honeynodes/
 
 # Config for requirements.txt
 cat > /opt/cowrie/requirements.txt <<EOF
@@ -59,38 +89,6 @@ python-dateutil
 tftpy
 bcrypt
 EOF
-
-# download honeyagent scripts and configuration file from main server
-mkdir /opt/honeyagent
-cd /opt/honeyagent
-wget http://$SERVER_IP:5000/api/v1/deployment_script/honeyagent -O honeyagent.py
-wget http://$SERVER_IP:5000/api/v1/deployment_script/honeyagent_conf_file -O honeyagent.conf
-
-# populate the honeyagent config file
-sed -i "s/TOKEN:/TOKEN: $TOKEN/g" honeyagent.conf
-sed -i "s/HONEYNODE_NAME:/HONEYNODE_NAME: $HONEYNODE_NAME/g" honeyagent.conf
-sed -i "s/IP:/IP: $IP/g" honeyagent.conf
-sed -i "s/SUBNET_MASK:/SUBNET_MASK: $SUBNET/g" honeyagent.conf
-sed -i "s/HONEYPOT_TYPE:/HONEYPOT_TYPE: cowrie/g" honeyagent.conf
-sed -i "s/NIDS_TYPE:/NIDS_TYPE: snort/g" honeyagent.conf
-sed -i "s/DEPLOYED_DATE:/DEPLOYED_DATE: $DEPLOY_DATE/g" honeyagent.conf
-sed -i "s/SERVER_IP:/SERVER_IP: $SERVER_IP/g" honeyagent.conf
-
-
-
-curl -X POST -H "Content-Type: application/json" -d "{
-	\"honeynode_name\" : \"$HONEYNODE_NAME\",
-	\"ip_addr\" : \"$IP_ADDR\",
-	\"subnet_mask\" : \"$SUBNET\",
-	\"honeypot_type\" : \"cowrie\",
-	\"nids_type\" : \"snort\",
-	\"no_of_attacks\" : \"0\",
-	\"date_deployed\" : \"$DEPLOY_DATE\",
-	\"heartbeat_status\" : \"False\",
-	\"last_heard\" : \"$DEPLOY_DATE\",
-	\"token\" : \"$TOKEN\"
-}" http://$SERVER_IP:5000/api/v1/honeynodes/
-
 
 
 cd /opt/cowrie
@@ -157,7 +155,7 @@ killasgroup=true
 user=cowrie
 EOF
 
-# 3. configure supervisor for honeyagent
+# configure supervisor for honeyagent
 cat > /etc/supervisor/conf.d/honeyagent.conf <<EOF
 [program:honeyagent]
 command=python3 /opt/honeyagent/honeyagent.py

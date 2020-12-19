@@ -22,7 +22,10 @@ CHANNELS = [
     "sticky_elephant.connections", 
     "sticky_elephant.queries",
     "dionaea.connections", 
-    "dionaea.capture"
+    "dionaea.capture",
+    "mwbinary.dionaea.sensorunique", 
+    "dionaea.capture.anon", 
+    "dionaea.captures"
 ]
 
 IDENT = 'collector'
