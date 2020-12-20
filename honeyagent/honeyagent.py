@@ -25,7 +25,7 @@ config = ConfigParser()
 config.read(os.path.join(basedir, 'honeyagent.conf'))
 
 #C2 SERVER INFO
-SERVER_IP = config['C2-SERVER']['SERVER_IP']                    
+SERVER_IP = config['WEB-SERVER']['SERVER_IP']                    
 SERVER_HB_PORT = int(config['HEARTBEATS']['SERVER_HB_PORT'])            
 HELLO_INTERVAL = int(config['HEARTBEATS']['HELLO_INTERVAL'])               
 
