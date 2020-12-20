@@ -25,7 +25,7 @@ CHANNELS = [
     "dionaea.capture",
     "mwbinary.dionaea.sensorunique", 
     "dionaea.capture.anon", 
-    "dionaea.captures"
+    "dionaea.caputres"
 ]
 
 IDENT = 'collector'
@@ -40,11 +40,6 @@ def main():
 
     def on_message(identifier, channel, payload):
 
-        # Dump the log to a json file to collect the log format
-        # THis is a testing feature, it will not be in the final version
-        # with open("logdump.json") as f:
-        #     log_data_dict = json.load(f)
-
         print(f"Identifier : {identifier}")
         print(f"Channel: {channel}")
         print("Payload:")
@@ -52,15 +47,6 @@ def main():
         payload_converted = json.loads(payload.decode())
         print(payload_converted)
         print("\n")
-
-        # if identifier not in log_data_dict.keys():
-        #    log_data_dict[identifier] = {"payloads":[payload_converted]}
-
-        # data = {identifier: {"payloads":[payload_converted]}}
-        # log_data_dict[identifier]["payloads"].append(payload_converted)
-
-        # with open("logdump.json", 'w') as f:
-        #     json.dump(log_data_dict, f, indent=4)
 
         # call api endpoint to store the log/alert in database and display on the webpage
         

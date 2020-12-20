@@ -19,6 +19,38 @@ IP_ADDR=$(ip addr show dev $INTERFACE | grep "inet" | awk 'NR==1{print $2}' | cu
 SUBNET=$(ifconfig $INTERFACE | grep "Mask:" | awk '{print $4}' | cut -d ':' -f 2)
 DEPLOY_DATE=$(date +"%Y-%m-%d %T")
 
+
+# stop and disable all services that use package management. 
+function killService() {
+    service=$1
+    sudo systemctl stop $service
+    sudo systemctl kill --kill-who=all $service
+
+    # Wait until the status of the service is either exited or killed.
+    while ! (sudo systemctl status "$service" | grep -q "Main.*code=\(exited\|killed\)")
+    do
+        sleep 10
+    done
+}
+
+function disableTimers() {
+    sudo systemctl disable apt-daily.timer
+    sudo systemctl disable apt-daily-upgrade.timer
+}
+
+function killServices() {
+    killService unattended-upgrades.service
+    killService apt-daily.service
+    killService apt-daily-upgrade.service
+}
+
+function main() {
+    disableTimers
+    killServices
+}
+
+main
+
 # install ruby 2.4, default version on ubuntu 16.04 is 2.3, which is not compatible with some packages used by sticky_elephant
 apt-get install -y software-properties-common
 apt-add-repository -y ppa:brightbox/ruby-ng

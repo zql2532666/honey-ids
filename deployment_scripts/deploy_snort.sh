@@ -34,6 +34,38 @@ SERVER_IP=$(cat /opt/honeyagent/honeyagent.conf | grep "SERVER_IP" | awk -F: '{p
 TOKEN=$(cat /opt/honeyagent/honeyagent.conf | grep "TOKEN" | awk -F: '{print $2}' | xargs)
 
 
+# stop and disable all services that use package management. 
+function killService() {
+    service=$1
+    sudo systemctl stop $service
+    sudo systemctl kill --kill-who=all $service
+
+    # Wait until the status of the service is either exited or killed.
+    while ! (sudo systemctl status "$service" | grep -q "Main.*code=\(exited\|killed\)")
+    do
+        sleep 10
+    done
+}
+
+function disableTimers() {
+    sudo systemctl disable apt-daily.timer
+    sudo systemctl disable apt-daily-upgrade.timer
+}
+
+function killServices() {
+    killService unattended-upgrades.service
+    killService apt-daily.service
+    killService apt-daily-upgrade.service
+}
+
+function main() {
+    disableTimers
+    killServices
+}
+
+main
+
+
 apt-get update
 DEBIAN_FRONTEND=noninteractive apt-get -y install build-essential libpcap-dev libjansson-dev libpcre3-dev libdnet-dev libdumbnet-dev libdaq-dev flex bison python-pip git make automake libtool zlib1g-dev
 
